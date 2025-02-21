@@ -5,12 +5,15 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/Jarimus/BibleTUI/internal/api_query"
 )
 
 // type Model interface methods: Init() tea.Cmd, Update(tea.Msg) (tea.Model, tea.Cmd), View
 type mainMenuModel struct {
-	options []option
-	cursor  int
+	textField string
+	options   []option
+	cursor    int
 }
 
 type option struct {
@@ -21,7 +24,7 @@ type option struct {
 func newMainMenu() mainMenuModel {
 
 	newOptions := []option{
-		{text: "Random verse", command: func() tea.Msg { return nil }},
+		{text: "Random verse", command: func() tea.Msg { return updateRandomVerse{} }},
 		{text: "Read the Bible", command: func() tea.Msg { return nil }},
 		{text: "Exit the Bible", command: tea.Quit},
 	}
@@ -38,6 +41,8 @@ func (m mainMenuModel) Init() tea.Cmd {
 
 func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case updateRandomVerse:
+		return m.newRandomVerse(), nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up":
@@ -61,20 +66,33 @@ func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m mainMenuModel) View() string {
 
-	var view string
+	view := m.textField + "\n\n"
 
 	welcomeMsg := "* Welcome to BibleTui! *"
 	topBottomBar := strings.Repeat("*", len(welcomeMsg))
 
-	view = fmt.Sprintf("%s\n%s\n%s\n", topBottomBar, welcomeMsg, topBottomBar)
+	view += fmt.Sprintf("%s\n%s\n%s\n", topBottomBar, welcomeMsg, topBottomBar)
 
 	for i, option := range m.options {
 		if m.cursor == i {
-			view = view + "-> " + option.text + "\n"
+			view += "-> " + option.text + "\n"
 		} else {
-			view = view + "   " + option.text + "\n"
+			view += "   " + option.text + "\n"
 		}
 	}
 
 	return view
+}
+
+type updateRandomVerse struct{}
+
+func (m mainMenuModel) newRandomVerse() mainMenuModel {
+
+	verse := api_query.GetRandomVerse()
+
+	// Apply the new random verse
+	m.textField = verse
+
+	return m
+
 }
