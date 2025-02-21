@@ -88,10 +88,11 @@ type updateRandomVerse struct{}
 
 func (m mainMenuModel) newRandomVerse() mainMenuModel {
 
-	verse := api_query.GetRandomVerse()
+	query := api_query.GetRandomVerse()
 
 	// Apply the new random verse
-	m.textField = verse
+	m.textField = fmt.Sprintf(`%s
+	- %s %d:%d (%s)`, query.RandomVerse.Text, query.RandomVerse.Book, query.RandomVerse.Chapter, query.RandomVerse.Verse, query.Translation.Name)
 
 	return m
 

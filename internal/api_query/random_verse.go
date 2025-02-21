@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func GetRandomVerse() string {
+func GetRandomVerse() Query {
 
 	url := "https://bible-api.com/data/web/random"
 
@@ -25,11 +25,11 @@ func GetRandomVerse() string {
 	defer resp.Body.Close()
 
 	// Unmarshal
-	var query QueryFormat
+	var query Query
 	err = json.Unmarshal(body, &query)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return query.RandomVerse.Text
+	return query
 }

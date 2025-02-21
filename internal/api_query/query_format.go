@@ -1,6 +1,6 @@
 package api_query
 
-type QueryFormat struct {
+type Query struct {
 	Translation struct {
 		Identifier   string `json:"identifier"`
 		Name         string `json:"name"`
