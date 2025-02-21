@@ -4,10 +4,10 @@ module github.com/Jarimus/BibleTUI
 go 1.23.4
 
 require github.com/charmbracelet/bubbletea v1.1.0
+require github.com/charmbracelet/lipgloss v1.0.0
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/charmbracelet/lipgloss v1.0.0 // indirect
 	github.com/charmbracelet/x/ansi v0.4.2 // indirect
 	github.com/charmbracelet/x/term v0.2.0 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect

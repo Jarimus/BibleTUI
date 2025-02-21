@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
+	styles "github.com/Jarimus/BibleTUI/internal/styles"
 )
 
 // type Model interface methods: Init() tea.Cmd, Update(tea.Msg) (tea.Model, tea.Cmd), View
@@ -29,10 +30,15 @@ func newMainMenu() mainMenuModel {
 		{text: "Exit the Bible", command: tea.Quit},
 	}
 
-	return mainMenuModel{
-		options: newOptions,
-		cursor:  0,
+	m := mainMenuModel{
+		textField: "",
+		options:   newOptions,
+		cursor:    0,
 	}
+
+	m.newRandomVerse()
+
+	return m
 }
 
 func (m mainMenuModel) Init() tea.Cmd {
@@ -42,7 +48,8 @@ func (m mainMenuModel) Init() tea.Cmd {
 func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case updateRandomVerse:
-		return m.newRandomVerse(), nil
+		m.newRandomVerse()
+		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up":
@@ -66,7 +73,7 @@ func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m mainMenuModel) View() string {
 
-	view := m.textField + "\n\n"
+	view := "\n" + m.textField + "\n"
 
 	welcomeMsg := "* Welcome to BibleTui! *"
 	topBottomBar := strings.Repeat("*", len(welcomeMsg))
@@ -75,9 +82,10 @@ func (m mainMenuModel) View() string {
 
 	for i, option := range m.options {
 		if m.cursor == i {
-			view += "-> " + option.text + "\n"
+			choiceText := fmt.Sprint(styles.GreenText.Render(option.text))
+			view = strings.Join([]string{view, choiceText, "\n"}, "")
 		} else {
-			view += "   " + option.text + "\n"
+			view += option.text + "\n"
 		}
 	}
 
@@ -86,14 +94,21 @@ func (m mainMenuModel) View() string {
 
 type updateRandomVerse struct{}
 
-func (m mainMenuModel) newRandomVerse() mainMenuModel {
+func (m *mainMenuModel) newRandomVerse() {
 
 	query := api_query.GetRandomVerse()
 
 	// Apply the new random verse
 	m.textField = fmt.Sprintf(`%s
-	- %s %d:%d (%s)`, query.RandomVerse.Text, query.RandomVerse.Book, query.RandomVerse.Chapter, query.RandomVerse.Verse, query.Translation.Name)
+	- %s %d:%d (%s)
+	`,
+		query.RandomVerse.Text,
+		query.RandomVerse.Book,
+		query.RandomVerse.Chapter,
+		query.RandomVerse.Verse,
+		query.Translation.Name)
 
-	return m
+	// Tried out red text styling
+	// m.textField = styles.RedText.Render(m.textField)
 
 }
