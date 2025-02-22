@@ -1,6 +1,6 @@
 package api_query
 
-type Query struct {
+type RandomQuery struct {
 	Translation struct {
 		Identifier   string `json:"identifier"`
 		Name         string `json:"name"`
@@ -15,4 +15,20 @@ type Query struct {
 		Verse   int    `json:"verse"`
 		Text    string `json:"text"`
 	} `json:"random_verse"`
+}
+
+
+type BookQuery struct {
+	Reference string `json:"reference"`
+	Verses    []struct {
+		BookID   string `json:"book_id"`
+		BookName string `json:"book_name"`
+		Chapter  int    `json:"chapter"`
+		Verse    int    `json:"verse"`
+		Text     string `json:"text"`
+	} `json:"verses"`
+	Text            string `json:"text"`
+	TranslationID   string `json:"translation_id"`
+	TranslationName string `json:"translation_name"`
+	TranslationNote string `json:"translation_note"`
 }

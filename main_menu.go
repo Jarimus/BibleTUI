@@ -26,8 +26,8 @@ func newMainMenu() mainMenuModel {
 
 	newOptions := []option{
 		{text: "Random verse", command: func() tea.Msg { return updateRandomVerse{} }},
-		{text: "Read the Bible", command: func() tea.Msg { return nil }},
-		{text: "Exit the Bible", command: tea.Quit},
+		{text: "Read the Bible", command: func() tea.Msg { return newBibleScreen() }},
+		{text: "Exit BibleTUI", command: tea.Quit},
 	}
 
 	m := mainMenuModel{

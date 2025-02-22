@@ -7,9 +7,9 @@ import (
 	"net/http"
 )
 
-func GetRandomVerse() RandomQuery {
+func GetJohn() BookQuery {
 
-	url := "https://bible-api.com/data/web/random"
+	url := "https://bible-api.com/john%201"
 
 	// Request a new verse
 	resp, err := http.Get(url)
@@ -25,7 +25,7 @@ func GetRandomVerse() RandomQuery {
 	defer resp.Body.Close()
 
 	// Unmarshal
-	var query RandomQuery
+	var query BookQuery
 	err = json.Unmarshal(body, &query)
 	if err != nil {
 		fmt.Println(err)
