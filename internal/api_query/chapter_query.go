@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-func GetJohn() BookQuery {
+func BibleChapterQuery() tea.Msg {
 
 	url := "https://bible-api.com/john%201"
 

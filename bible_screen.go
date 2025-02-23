@@ -10,23 +10,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type bibleScreenModel struct {
-	bibleText string
-	ready     bool
-	fullQuery api_query.BookQuery
-	viewport  viewport.Model
-}
-
-func newBibleScreen() bibleScreenModel {
-	fullQuery := api_query.GetJohn()
-	bibleText := fullQuery.Text
-	return bibleScreenModel{
-		bibleText: bibleText,
-		ready:     false,
-		fullQuery: fullQuery,
-	}
-}
-
 var (
 	titleStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
@@ -41,6 +24,38 @@ var (
 	}()
 )
 
+type bibleScreenModel struct {
+	title     string
+	bibleText string
+	viewport  viewport.Model
+}
+
+func newBibleScreen() bibleScreenModel {
+	// Get the chapter for reading
+	fullQuery := api_query.BibleChapterQuery()
+	switch fullQuery := fullQuery.(type) {
+	case api_query.BookQuery:
+		bibleText := fullQuery.Text
+		title := fmt.Sprintf("%s: %d", fullQuery.Verses[0].BookName, fullQuery.Verses[0].Chapter)
+		newBibleScreen := bibleScreenModel{
+			title:     title,
+			bibleText: bibleText,
+		}
+
+		// Generate a viewport from the dimensions of the global variables
+		headerHeight := lipgloss.Height(newBibleScreen.headerView())
+		footerHeight := lipgloss.Height(newBibleScreen.footerView())
+		verticalMarginHeight := headerHeight + footerHeight
+		newBibleScreen.viewport = viewport.New(window_width, window_height-verticalMarginHeight)
+		newBibleScreen.viewport.YPosition = headerHeight
+		newBibleScreen.viewport.SetContent(newBibleScreen.bibleText)
+
+		// Return the model
+		return newBibleScreen
+	}
+	return bibleScreenModel{}
+}
+
 func (m bibleScreenModel) Init() tea.Cmd {
 	return nil
 }
@@ -52,26 +67,20 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q", "esc":
-			var goBack goBackMsg
-			return m, func() tea.Msg { return goBack }
-		}
+	// Window resize affects the viewport
 	case tea.WindowSizeMsg:
 		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())
 		verticalMarginHeight := headerHeight + footerHeight
+		m.viewport.Width = msg.Width
+		m.viewport.Height = msg.Height - verticalMarginHeight
 
-		if !m.ready {
-			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
-			m.viewport.YPosition = headerHeight
-			m.viewport.SetContent(m.bibleText)
-			m.ready = true
-		} else {
-			m.viewport.Width = msg.Width
-			m.viewport.Height = msg.Height - verticalMarginHeight
-		}
+	// Retrieving the Bible chapter updates the viewport text
+	case api_query.BookQuery:
+		m.title = fmt.Sprintf("%s: %d", msg.Verses[0].BookName, msg.Verses[0].Chapter)
+		m.bibleText = msg.Text
+		m.viewport.SetContent(m.bibleText)
+		return m, tea.Quit
 	}
 
 	m.viewport, cmd = m.viewport.Update(msg)
@@ -81,20 +90,19 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m bibleScreenModel) View() string {
-	if !m.ready {
-		return "\n   Initializing..."
-	}
 	return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.viewport.View(), m.footerView())
 }
 
 func (m bibleScreenModel) headerView() string {
-	title := titleStyle.Render("Otsikko (Kirja luku:jae)")
+	title := titleStyle.Render(m.title)
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
 
 func (m bibleScreenModel) footerView() string {
-	info := infoStyle.Render(fmt.Sprintf("%3.f%%", m.viewport.ScrollPercent()*100))
+	help := "↑↓: scroll | ctrl+c, esc: quit | ← →: next chapter"
+	info := infoStyle.Render(fmt.Sprintf("%s | %3.f%%", help, m.viewport.ScrollPercent()*100))
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(info)))
-	return lipgloss.JoinHorizontal(lipgloss.Bottom, line, info)
+	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
+
 }

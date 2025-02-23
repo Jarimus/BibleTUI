@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
@@ -12,9 +14,9 @@ import (
 
 // type Model interface methods: Init() tea.Cmd, Update(tea.Msg) (tea.Model, tea.Cmd), View
 type mainMenuModel struct {
-	textField string
-	options   []option
-	cursor    int
+	randomVerseVP viewport.Model
+	options       []option
+	cursor        int
 }
 
 type option struct {
@@ -24,91 +26,90 @@ type option struct {
 
 func newMainMenu() mainMenuModel {
 
+	var m mainMenuModel
+
 	newOptions := []option{
-		{text: "Random verse", command: func() tea.Msg { return updateRandomVerse{} }},
-		{text: "Read the Bible", command: func() tea.Msg { return newBibleScreen() }},
+		{text: "Random verse", command: m.newRandomVerse},
+		{text: "Read the Bible", command: func() tea.Msg { return newBibleScreen() }}, // Pass initial width and height
 		{text: "Exit BibleTUI", command: tea.Quit},
 	}
 
-	m := mainMenuModel{
-		textField: "",
-		options:   newOptions,
-		cursor:    0,
+	m = mainMenuModel{
+		randomVerseVP: viewport.New(window_width, window_height-lipgloss.Height(m.menuView())),
+		options:       newOptions,
+		cursor:        0,
 	}
 
-	m.newRandomVerse()
+	m.randomVerseVP.SetContent("Loading...")
 
 	return m
 }
 
 func (m mainMenuModel) Init() tea.Cmd {
-	return nil
+	return m.newRandomVerse
 }
 
 func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case updateRandomVerse:
-		m.newRandomVerse()
-		return m, nil
+	case api_query.RandomQuery:
+		m.applyRandomVerse(msg)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up":
-			m.cursor = (m.cursor - 1) % len(m.options)
-			if m.cursor < 0 {
-				m.cursor += len(m.options)
-			}
+			m.cursor = (m.cursor - 1 + len(m.options)) % len(m.options)
 			return m, nil
 		case "down":
 			m.cursor = (m.cursor + 1) % len(m.options)
 			return m, nil
-		case "ctrl+c":
-			return m, tea.Quit
 		case "enter":
 			return m, m.options[m.cursor].command
 		}
-
+	case tea.WindowSizeMsg:
+		m.randomVerseVP.Width = msg.Width
+		m.randomVerseVP.Height = msg.Height - lipgloss.Height(m.menuView())
 	}
 	return m, nil
 }
 
 func (m mainMenuModel) View() string {
+	emptyFullLine := strings.Repeat(" ", window_width)
 
-	view := "\n" + m.textField + "\n"
+	return lipgloss.JoinVertical(lipgloss.Center, emptyFullLine, m.menuView(), m.randomVerseVP.View())
+}
 
-	welcomeMsg := "* Welcome to BibleTui! *"
+func (m mainMenuModel) menuView() string {
+	welcomeMsg := "* Welcome to BibleTUI! *"
 	topBottomBar := strings.Repeat("*", len(welcomeMsg))
 
-	view += fmt.Sprintf("%s\n%s\n%s\n", topBottomBar, welcomeMsg, topBottomBar)
-
+	var options string
 	for i, option := range m.options {
 		if m.cursor == i {
 			choiceText := fmt.Sprint(styles.GreenText.Render(option.text))
-			view = strings.Join([]string{view, choiceText, "\n"}, "")
+			options += choiceText + "\n"
 		} else {
-			view += option.text + "\n"
+			options += option.text + "\n"
 		}
 	}
-
-	return view
+	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, welcomeMsg, topBottomBar, options)
 }
 
-type updateRandomVerse struct{}
-
-func (m *mainMenuModel) newRandomVerse() {
+func (m mainMenuModel) newRandomVerse() tea.Msg {
 
 	query := api_query.GetRandomVerse()
 
+	return query
+
+}
+
+func (m *mainMenuModel) applyRandomVerse(query api_query.RandomQuery) {
 	// Apply the new random verse
-	m.textField = fmt.Sprintf(`%s
-	- %s %d:%d (%s)
-	`,
-		query.RandomVerse.Text,
+	bibleText, _ := strings.CutSuffix(query.RandomVerse.Text, "\n")
+
+	s := fmt.Sprintf("%s\n- %s %d:%d (%s)",
+		bibleText,
 		query.RandomVerse.Book,
 		query.RandomVerse.Chapter,
 		query.RandomVerse.Verse,
 		query.Translation.Name)
-
-	// Tried out red text styling
-	// m.textField = styles.RedText.Render(m.textField)
-
+	m.randomVerseVP.SetContent(s)
 }
