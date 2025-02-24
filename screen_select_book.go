@@ -81,7 +81,7 @@ func (m bookSelectionModel) View() string {
 
 	// Show choices:
 	listLength := len(m.menuItems)
-	itemsShown := min(30, listLength)
+	itemsShown := min(listLength, window_height-5)
 	// n: top index to show list items from.
 	n := max(0, min(m.choiceIndex-itemsShown/2, listLength-itemsShown))
 

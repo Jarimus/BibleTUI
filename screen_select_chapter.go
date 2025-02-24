@@ -81,7 +81,7 @@ func (m chapterSelectionModel) View() string {
 
 	// Show choices:
 	listLength := len(m.menuItems)
-	itemsShown := min(30, listLength)
+	itemsShown := min(listLength, window_height-5)
 	// n: starting index, which is 4 less than choiceIndex, min 0, max listLength - itemsShown
 	n := max(0, min(m.choiceIndex-itemsShown/2, listLength-itemsShown))
 
