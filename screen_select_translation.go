@@ -50,6 +50,21 @@ func newTranslationScreen() translationSelectionModel {
 			command: applyTranslation,
 		},
 		{
+			name:    "Open Hebrew Living New Testament",
+			id:      "a8a97eebae3c98e4-01",
+			command: applyTranslation,
+		},
+		{
+			name:    "Brenton Greek Septuagint",
+			id:      "c114c33098c4fef1-01",
+			command: applyTranslation,
+		},
+		{
+			name:    "Solid Rock Greek New Testament",
+			id:      "47f396bad37936f0-01",
+			command: applyTranslation,
+		},
+		{
 			name: "Back",
 		},
 	}
