@@ -36,11 +36,13 @@ func (m rootScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		window_width = msg.Width
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyCtrlC, tea.KeyEsc:
+		case tea.KeyEsc:
 			if len(m.models) == 1 {
 				return m, tea.Quit
 			}
-			return m.goBack(), nil
+			m = m.goBack()
+		case tea.KeyCtrlC:
+			return m, tea.Quit
 		}
 	case api_query.TranslationData:
 		current.translationData = msg

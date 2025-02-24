@@ -68,11 +68,4 @@ type ChapterData struct {
 			BookID string `json:"bookId"`
 		} `json:"previous"`
 	} `json:"data"`
-	Meta struct {
-		Fums          string `json:"fums"`
-		FumsID        string `json:"fumsId"`
-		FumsJsInclude string `json:"fumsJsInclude"`
-		FumsJs        string `json:"fumsJs"`
-		FumsNoScript  string `json:"fumsNoScript"`
-	} `json:"meta"`
 }

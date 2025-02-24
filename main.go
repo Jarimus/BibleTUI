@@ -11,25 +11,23 @@ var window_width int
 var window_height int
 
 type currentlyReading struct {
-	translationName   string
-	translationID     string
-	translationData   api_query.TranslationData
-	bookData          api_query.BookData
-	chapterData       api_query.ChapterData
-	currentBookStr    string
-	currentChapterInt int
-	currentChapterStr string
+	translationName string
+	translationID   string
+	translationData api_query.TranslationData
+	bookData        api_query.BookData
+	chapterData     api_query.ChapterData
 }
 
 var current currentlyReading
 
 func main() {
 
-	current.translationName = "TEST"
+	current.translationName = "Finnish New Testament"
+	current.translationID = "c739534f6a23acb2-01"
+	current.translationData = api_query.TranslationQuery(current.translationID)
 
 	mainMenu := newMainMenu()
 	root := newRootScreen([]tea.Model{mainMenu})
-	//root := newRootScreen([]tea.Model{newBibleScreen()})
 	p := tea.NewProgram(root)
 	p.Run()
 }

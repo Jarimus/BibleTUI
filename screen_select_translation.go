@@ -11,11 +11,11 @@ import (
 )
 
 type translationSelectionModel struct {
-	menuItems   []item
+	menuItems   []translationMenuItem
 	choiceIndex int
 }
 
-type item struct {
+type translationMenuItem struct {
 	name    string
 	id      string
 	command func(string, string) func() tea.Msg
@@ -23,7 +23,7 @@ type item struct {
 
 func newTranslationScreen() translationSelectionModel {
 
-	var menuItems = []item{
+	var menuItems = []translationMenuItem{
 		{
 			name:    "Simplified Chinese",
 			id:      "7ea794434e9ea7ee-01",

@@ -30,7 +30,7 @@ func newMainMenu() mainMenuModel {
 
 	newOptions := []option{
 		{text: "Random verse", command: m.newRandomVerse},
-		{text: "Read the Bible", command: func() tea.Msg { return newBibleScreen() }},           // Open the Bible reading screen
+		{text: "Read the Bible", command: func() tea.Msg { return newBookSelectionScreen() }},   // Select book -> select chapter -> read
 		{text: "Change translation", command: func() tea.Msg { return newTranslationScreen() }}, // Open a screen to choose the translation
 		{text: "Exit BibleTUI", command: tea.Quit},
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	wordwrap "github.com/mitchellh/go-wordwrap"
 )
 
 var (
@@ -32,28 +33,25 @@ type bibleScreenModel struct {
 
 func newBibleScreen() bibleScreenModel {
 	// Get the chapter for reading
-	fullQuery := api_query.BibleChapterQuery()
-	switch data := fullQuery.(type) {
-	case api_query.ChapterData:
-		bibleText := data.Data.Content
-		title := fmt.Sprintf("%s: %d", current.currentBookStr, current.currentChapterInt)
-		newBibleScreen := bibleScreenModel{
-			title:     title,
-			bibleText: bibleText,
-		}
+	bibleText := current.chapterData.Data.Content
+	bibleText = strings.ReplaceAll(bibleText, "[", "\n[")
+	bibleText = wordwrap.WrapString(bibleText, uint(window_width-2))
+	title := current.chapterData.Data.Reference
 
-		// Generate a viewport from the dimensions of the global variables
-		headerHeight := lipgloss.Height(newBibleScreen.headerView())
-		footerHeight := lipgloss.Height(newBibleScreen.footerView())
-		verticalMarginHeight := headerHeight + footerHeight
-		newBibleScreen.viewport = viewport.New(window_width, window_height-verticalMarginHeight)
-		newBibleScreen.viewport.YPosition = headerHeight
-		newBibleScreen.viewport.SetContent(newBibleScreen.bibleText)
-
-		// Return the model
-		return newBibleScreen
+	newBibleScreen := bibleScreenModel{
+		title:     title,
+		bibleText: bibleText,
 	}
-	return bibleScreenModel{}
+	// Generate a viewport from the dimensions of the global variables
+	headerHeight := lipgloss.Height(newBibleScreen.headerView())
+	footerHeight := lipgloss.Height(newBibleScreen.footerView())
+	verticalMarginHeight := headerHeight + footerHeight
+	newBibleScreen.viewport = viewport.New(window_width, window_height-verticalMarginHeight)
+	newBibleScreen.viewport.YPosition = headerHeight
+	newBibleScreen.viewport.SetContent(newBibleScreen.bibleText)
+
+	// Return the model
+	return newBibleScreen
 }
 
 func (m bibleScreenModel) Init() tea.Cmd {
@@ -77,16 +75,9 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Retrieving the Bible chapter updates the viewport text
 	case api_query.ChapterData:
-		m.title = fmt.Sprintf("%s: %d", current.currentBookStr, current.currentChapterInt)
-		m.bibleText = msg.Data.Content
+		m.title = current.chapterData.Data.Reference
+		m.bibleText = current.chapterData.Data.Content
 		m.viewport.SetContent(m.bibleText)
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "left":
-			break
-		case "right":
-			break
-		}
 	}
 
 	m.viewport, cmd = m.viewport.Update(msg)
@@ -96,7 +87,7 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m bibleScreenModel) View() string {
-	return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.viewport.View(), m.footerView())
+	return lipgloss.JoinVertical(lipgloss.Top, m.headerView(), m.viewport.View(), m.footerView())
 }
 
 func (m bibleScreenModel) headerView() string {
