@@ -78,6 +78,14 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.title = current.chapterData.Data.Reference
 		m.bibleText = current.chapterData.Data.Content
 		m.viewport.SetContent(m.bibleText)
+	case tea.KeyMsg:
+		switch msg.String() {
+		case tea.KeyLeft.String():
+			cmds = append(cmds, toPreviousChapter)
+		case tea.KeyRight.String():
+			cmds = append(cmds, toNextChapter)
+		}
+
 	}
 
 	m.viewport, cmd = m.viewport.Update(msg)
@@ -97,9 +105,25 @@ func (m bibleScreenModel) headerView() string {
 }
 
 func (m bibleScreenModel) footerView() string {
-	help := "↑↓: scroll | ctrl+c, esc: quit | ← →: next chapter"
+	help := "↑↓: scroll | ctrl+c, esc: quit | ← →: previous/next chapter"
 	info := infoStyle.Render(fmt.Sprintf("%s | %3.f%%", help, m.viewport.ScrollPercent()*100))
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(info)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 
+}
+
+func toPreviousChapter() tea.Msg {
+	if current.chapterData.Data.Previous.ID == "" {
+		return nil
+	}
+	chapterData := api_query.ChapterQuery(current.translationID, current.chapterData.Data.Previous.ID)
+	return chapterData
+}
+
+func toNextChapter() tea.Msg {
+	if current.chapterData.Data.Next.ID == "" {
+		return nil
+	}
+	chapterData := api_query.ChapterQuery(current.translationID, current.chapterData.Data.Next.ID)
+	return chapterData
 }

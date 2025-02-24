@@ -44,8 +44,8 @@ func (m rootScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}
-	case api_query.TranslationData:
-		current.translationData = msg
+	case api_query.ChapterData:
+		current.chapterData = msg
 	}
 
 	currentModel := m.models[len(m.models)-1]
