@@ -3,6 +3,7 @@ package main
 import (
 	"slices"
 
+	"github.com/Jarimus/BibleTUI/internal/api_query"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -41,6 +42,8 @@ func (m rootScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m.goBack(), nil
 		}
+	case api_query.TranslationData:
+		current.translationData = msg
 	}
 
 	currentModel := m.models[len(m.models)-1]

@@ -18,28 +18,12 @@ type RandomQuery struct {
 	} `json:"random_verse"`
 }
 
-// Old api
-type BookQuery struct {
-	Reference string `json:"reference"`
-	Verses    []struct {
-		BookID   string `json:"book_id"`
-		BookName string `json:"book_name"`
-		Chapter  int    `json:"chapter"`
-		Verse    int    `json:"verse"`
-		Text     string `json:"text"`
-	} `json:"verses"`
-	Text            string `json:"text"`
-	TranslationID   string `json:"translation_id"`
-	TranslationName string `json:"translation_name"`
-	TranslationNote string `json:"translation_note"`
-}
-
 // NEW API DOWN HERE
 
-// query for the books of a translation. Use the Bible-id for the search:
+// Data for the books of a translation. Use the Bible-id for the search:
 // https://api.scripture.api.bible/v1/bibles/[BIBLE-ID]/books
-type BooksQuery struct {
-	Data []struct {
+type TranslationData struct {
+	Books []struct {
 		ID           string `json:"id"`
 		BibleID      string `json:"bibleId"`
 		Abbreviation string `json:"abbreviation"`
@@ -48,10 +32,22 @@ type BooksQuery struct {
 	} `json:"data"`
 }
 
+// Data for the chapters of a book. Need Bible-id and book-id (TranslationData.Books[i].ID):
+// https://api.scripture.api.bible/v1/bibles/[BIBLE-ID]/books/[BOOK-ID]/chapters
+type BookData struct {
+	Chapters []struct {
+		ID        string `json:"id"`
+		BibleID   string `json:"bibleId"`
+		BookID    string `json:"bookId"`
+		Number    string `json:"number"`
+		Reference string `json:"reference"`
+	} `json:"data"`
+}
+
 // Chapter structure. Query:
 // https://api.scripture.api.bible/v1/bibles/[BIBLE-ID]/chapters/[CHAPTER-ID]?content-type=text
 // &include-notes=false&include-titles=true&include-chapter-numbers=false&include-verse-numbers=true&include-verse-spans=false
-type ChapterQuery struct {
+type ChapterData struct {
 	Data struct {
 		ID         string `json:"id"`
 		BibleID    string `json:"bibleId"`

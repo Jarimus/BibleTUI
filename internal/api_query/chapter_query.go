@@ -26,7 +26,7 @@ func NewChapterQuery(url string) tea.Cmd {
 		defer resp.Body.Close()
 
 		// Unmarshal
-		var query BookQuery
+		var query BookData
 		err = json.Unmarshal(body, &query)
 		if err != nil {
 			fmt.Println(err)
@@ -53,7 +53,7 @@ func BibleChapterQuery() tea.Msg {
 	defer resp.Body.Close()
 
 	// Unmarshal
-	var query BookQuery
+	var query BookData
 	err = json.Unmarshal(body, &query)
 	if err != nil {
 		fmt.Println(err)

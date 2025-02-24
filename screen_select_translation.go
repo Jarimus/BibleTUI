@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -107,6 +108,9 @@ func applyTranslation(translationName, translationID string) func() tea.Msg {
 	return func() tea.Msg {
 		current.translationID = translationID
 		current.translationName = translationName
+
+		current.translationData = api_query.TranslationQuery(current.translationID)
+
 		return goBackMsg{}
 	}
 }

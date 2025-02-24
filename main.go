@@ -1,6 +1,9 @@
 package main
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"github.com/Jarimus/BibleTUI/internal/api_query"
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 // Global variables:
 // Terminal width and height
@@ -8,10 +11,14 @@ var window_width int
 var window_height int
 
 type currentlyReading struct {
-	translationName string
-	translationID   string
-	bookData        string
-	chapterData     int
+	translationName   string
+	translationID     string
+	translationData   api_query.TranslationData
+	bookData          api_query.BookData
+	chapterData       api_query.ChapterData
+	currentBookStr    string
+	currentChapterInt int
+	currentChapterStr string
 }
 
 var current currentlyReading
