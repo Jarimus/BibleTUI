@@ -39,7 +39,7 @@ func (m rootScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(m.models) == 1 {
 				return m, tea.Quit
 			}
-			m = m.goBack()
+			return m.goBack(), nil
 		}
 	}
 

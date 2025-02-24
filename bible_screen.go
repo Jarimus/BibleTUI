@@ -24,17 +24,10 @@ var (
 	}()
 )
 
-var current currentlyReading
-
 type bibleScreenModel struct {
 	title     string
 	bibleText string
 	viewport  viewport.Model
-}
-
-type currentlyReading struct {
-	bookAbbr string
-	chapter  int
 }
 
 func newBibleScreen() bibleScreenModel {
@@ -50,8 +43,8 @@ func newBibleScreen() bibleScreenModel {
 		}
 
 		// Record the info for current reading
-		current.bookAbbr = fullQuery.Verses[0].BookID
-		current.chapter = fullQuery.Verses[0].Chapter
+		current.bookData = fullQuery.Verses[0].BookID
+		current.chapterData = fullQuery.Verses[0].Chapter
 
 		// Generate a viewport from the dimensions of the global variables
 		headerHeight := lipgloss.Height(newBibleScreen.headerView())
@@ -94,16 +87,16 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "left":
-			if current.chapter == 1 {
+			if current.chapterData == 1 {
 				break
 			}
-			current.chapter = current.chapter - 1
-			url := fmt.Sprintf("https://bible-api.com/%s %d", current.bookAbbr, current.chapter)
+			current.chapterData = current.chapterData - 1
+			url := fmt.Sprintf("https://bible-api.com/%s %d", current.bookData, current.chapterData)
 			newQuery := api_query.NewChapterQuery(url)
 			return m, newQuery
 		case "right":
-			current.chapter = current.chapter + 1
-			url := fmt.Sprintf("https://bible-api.com/%s %d", current.bookAbbr, current.chapter)
+			current.chapterData = current.chapterData + 1
+			url := fmt.Sprintf("https://bible-api.com/%s %d", current.bookData, current.chapterData)
 			newQuery := api_query.NewChapterQuery(url)
 			return m, newQuery
 		}
