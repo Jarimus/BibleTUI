@@ -12,17 +12,20 @@ import (
 )
 
 var (
+	// Style for the title at the top of the viewport
 	titleStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
 		b.Right = "├"
 		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
 	}()
 
+	// Styling the viewport
 	vpStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
 		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 2)
 	}()
 
+	// Styling the bottom info panel
 	infoStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
 		b.Left = "┤"
@@ -30,6 +33,7 @@ var (
 	}()
 )
 
+// tea.Model for the reading screen
 type bibleScreenModel struct {
 	title     string
 	bibleText string
@@ -37,25 +41,27 @@ type bibleScreenModel struct {
 }
 
 func newBibleScreen() bibleScreenModel {
-	// Get the chapter for reading
-	bibleText := current.chapterData.Data.Content
-	bibleText = strings.ReplaceAll(bibleText, "[", "\n[")
-	bibleText = wordwrap.WrapString(bibleText, uint(window_width-2))
-	title := current.chapterData.Data.Reference
 
+	// Apply the chapter content and title to the model
 	newBibleScreen := bibleScreenModel{
-		title:     title,
-		bibleText: bibleText,
+		title:     current.chapterData.Data.Reference,
+		bibleText: current.chapterData.Data.Content,
 	}
+
 	// Generate a viewport from the dimensions of the global variables
+	// Take into account the header, the footer and the styling for the viewport
 	headerHeight := lipgloss.Height(newBibleScreen.headerView())
 	footerHeight := lipgloss.Height(newBibleScreen.footerView())
 	vpStyleHeight, vpStyleWidth := getStyleDimensions(vpStyle)
 	verticalMargin := headerHeight + footerHeight + vpStyleHeight
 	horizontalMargin := vpStyleWidth
 	newBibleScreen.viewport = viewport.New(window_width-horizontalMargin, window_height-verticalMargin)
+
+	// Move the viewport into position below the header
 	newBibleScreen.viewport.YPosition = headerHeight
-	newBibleScreen.viewport.SetContent(newBibleScreen.bibleText)
+
+	// Apply the formatted Bible text to the viewport
+	newBibleScreen.viewport.SetContent(formatBibleText(newBibleScreen.bibleText))
 
 	// Return the model
 	return newBibleScreen
@@ -72,7 +78,9 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
-	// Window resize affects the viewport
+
+	// Window resize affects the viewport dimensions
+	// The text needs to be reformatted for the new dimensions to get the linebreaks right
 	case tea.WindowSizeMsg:
 		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())
@@ -82,14 +90,16 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.Width = msg.Width - horizontalMargin
 		m.viewport.Height = msg.Height - verticalMargin
 
+		m.viewport.SetContent(formatBibleText(m.bibleText))
+
 	// Retrieving the Bible chapter updates the viewport text
 	case api_query.ChapterData:
 		m.title = current.chapterData.Data.Reference
 		m.bibleText = current.chapterData.Data.Content
-		m.bibleText = strings.ReplaceAll(m.bibleText, "[", "\n[")
-		m.bibleText = wordwrap.WrapString(m.bibleText, uint(window_width-2))
-		m.viewport.YPosition = lipgloss.Height(m.headerView())
-		m.viewport.SetContent(m.bibleText)
+		m.viewport.SetContent(formatBibleText(m.bibleText))
+		m.viewport.YOffset = 0
+
+	// Pressing left and right moves between the chapters
 	case tea.KeyMsg:
 		switch msg.String() {
 		case tea.KeyLeft.String():
@@ -100,6 +110,7 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	}
 
+	// update the viewport view, get commands
 	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
 
@@ -107,17 +118,20 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m bibleScreenModel) View() string {
+	// Style and render the viewport with the header and the footer
 	text := vpStyle.Render(m.viewport.View())
 	return lipgloss.JoinVertical(lipgloss.Top, m.headerView(), text, m.footerView())
 }
 
 func (m bibleScreenModel) headerView() string {
+	// Style and render the header
 	title := titleStyle.Render(m.title)
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
 
 func (m bibleScreenModel) footerView() string {
+	// Style and render the footer
 	help := "↑↓: scroll | esc: quit | ← →: previous/next chapter"
 	info := infoStyle.Render(fmt.Sprintf("%s | %3.f%%", help, m.viewport.ScrollPercent()*100))
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(info)))
@@ -126,6 +140,7 @@ func (m bibleScreenModel) footerView() string {
 }
 
 func toPreviousChapter() tea.Msg {
+	// Query the previous chapter and return it as a tea.Msg for the model to process
 	if current.chapterData.Data.Previous.ID == "" {
 		return nil
 	}
@@ -134,6 +149,7 @@ func toPreviousChapter() tea.Msg {
 }
 
 func toNextChapter() tea.Msg {
+	// Query the next chapter and return it as a tea.Msg for the model to process
 	if current.chapterData.Data.Next.ID == "" {
 		return nil
 	}
@@ -142,8 +158,32 @@ func toNextChapter() tea.Msg {
 }
 
 func getStyleDimensions(style lipgloss.Style) (height int, width int) {
+	// Get the combined size of borders, paddings and margins of a style. Used for the viewport style.
+	// Why does style.GetFrameSize() not work directly? Why do I have to do this manually?
+
+	// Border dimensions
 	border := style.GetBorderStyle()
-	paddingTop, _, _, paddingLeft := style.GetPadding()
-	marginTop, marginLeft := style.GetMarginTop(), style.GetMarginLeft()
-	return (border.GetTopSize() + paddingTop + marginTop) * 2, (border.GetLeftSize() + paddingLeft + marginLeft) * 2
+	borderV := border.GetTopSize() + border.GetBottomSize()
+	borderH := border.GetLeftSize() + border.GetRightSize()
+
+	// Padding dimensions
+	paddingTop, paddingRight, paddingBottom, paddingLeft := style.GetPadding()
+	paddingV := paddingTop + paddingBottom
+	paddingH := paddingRight + paddingLeft
+
+	// Margin dimensions
+	marginV := style.GetMarginTop() + style.GetMarginBottom()
+	marginH := style.GetMarginLeft() + style.GetMarginRight()
+	return borderV + paddingV + marginV, borderH + paddingH + marginH
+}
+
+func formatBibleText(text string) string {
+	// formats the Bible text for the viewport. Need linebreaks for the viewport to handle scrolling properly.
+	formattedText := strings.ReplaceAll(text, "[", "\n[")
+	formattedText = wordwrap.WrapString(formattedText, uint(window_width-2))
+
+	// Temporary solution: Add extra linebreaks at the end for the viewport to scroll properly
+	formattedText += strings.Repeat("\n", 10)
+
+	return formattedText
 }
