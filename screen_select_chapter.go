@@ -94,6 +94,7 @@ func (m chapterSelectionModel) View() string {
 			options = append(options, m.menuItems[currentIndex].name)
 		}
 	}
+
 	return lipgloss.JoinVertical(lipgloss.Left, options...)
 }
 
@@ -102,6 +103,17 @@ func (m chapterSelectionModel) headerView() string {
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
 	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
+}
+
+func (m chapterSelectionModel) getName(index int) string {
+	return m.menuItems[index].name
+}
+
+func (m chapterSelectionModel) getListLength() int {
+	return len(m.menuItems)
+}
+func (m chapterSelectionModel) getChoiceIndex() int {
+	return m.choiceIndex
 }
 
 func selectChapter(chapterID string) func() tea.Msg {

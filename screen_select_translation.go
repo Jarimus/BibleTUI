@@ -106,20 +106,47 @@ func (m translationSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m translationSelectionModel) View() string {
+
+	var options []string
+
+	options = append(options, m.headerView())
+
+	// When not all items fit the screen, we need to limit them:
+	listLength := len(m.menuItems)
+	itemsShown := min(listLength, window_height-lipgloss.Height(m.headerView()))
+	// n: index for the topmost item shown.
+	n := max(0, min(m.choiceIndex-itemsShown/2, listLength-itemsShown))
+
+	// show i items from the list, starting from n
+	for i := range itemsShown {
+		currentIndex := n + i
+		if m.choiceIndex == currentIndex {
+			choiceText := fmt.Sprint(styles.GreenText.Render(m.menuItems[currentIndex].name))
+			options = append(options, choiceText)
+		} else {
+			options = append(options, m.menuItems[currentIndex].name)
+		}
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, options...)
+}
+
+func (m translationSelectionModel) headerView() string {
 	topMsg := "* Choose a translation *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
+	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
+}
 
-	var options string
-	for i, item := range m.menuItems {
-		if m.choiceIndex == i {
-			choiceText := fmt.Sprint(styles.GreenText.Render(item.name))
-			options += choiceText + "\n"
-		} else {
-			options += item.name + "\n"
-		}
-	}
-	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar, options)
+func (m translationSelectionModel) getName(index int) string {
+	return m.menuItems[index].name
+}
+
+func (m translationSelectionModel) getListLength() int {
+	return len(m.menuItems)
+}
+func (m translationSelectionModel) getChoiceIndex() int {
+	return m.choiceIndex
 }
 
 func selectTranslation(translationName, translationID string) func() tea.Msg {

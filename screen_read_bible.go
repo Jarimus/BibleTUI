@@ -183,7 +183,7 @@ func formatBibleText(text string) string {
 	formattedText = wordwrap.WrapString(formattedText, uint(window_width-2))
 
 	// Temporary solution: Add extra linebreaks at the end for the viewport to scroll properly
-	formattedText += strings.Repeat("\n", 10)
+	formattedText += strings.Repeat("\n", 7)
 
 	return formattedText
 }
