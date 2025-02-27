@@ -8,7 +8,7 @@ import (
 )
 
 func BookQuery(translationID, bookID string) BookData {
-	// Key data: names and IDs for chapters of the chosen book
+	// Key data in this query: names and IDs for chapters of the chosen book
 
 	url := fmt.Sprintf("https://api.scripture.api.bible/v1/bibles/%s/books/%s/chapters", translationID, bookID)
 

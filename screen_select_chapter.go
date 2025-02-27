@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Chapter selection works similarly to book selection
 type chapterSelectionModel struct {
 	menuItems   []chapterMenuItem
 	choiceIndex int
@@ -22,14 +23,13 @@ type chapterMenuItem struct {
 }
 
 func newChapterSelectionScreen() chapterSelectionModel {
-
 	var menuItems = []chapterMenuItem{}
 
 	for _, chapter := range current.bookData.Chapters {
 		item := chapterMenuItem{
 			name:    chapter.Reference,
 			id:      chapter.ID,
-			command: applyChapter,
+			command: selectChapter,
 		}
 		menuItems = append(menuItems, item)
 	}
@@ -73,31 +73,52 @@ func (m chapterSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m chapterSelectionModel) View() string {
-	topMsg := "* Choose a chapter *"
-	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
-	topMsg = styles.YellowText.Render(topMsg)
 
-	var options string
+	var options []string
 
-	// Show choices:
+	options = append(options, m.headerView())
+
+	// When not all items fit the screen, we need to limit them:
 	listLength := len(m.menuItems)
-	itemsShown := min(listLength, window_height-5)
-	// n: starting index, which is 4 less than choiceIndex, min 0, max listLength - itemsShown
+	itemsShown := min(listLength, window_height-lipgloss.Height(m.headerView()))
+	// n: index for the topmost item shown.
 	n := max(0, min(m.choiceIndex-itemsShown/2, listLength-itemsShown))
 
-	for i := 0; i < itemsShown; i++ {
+	// show i items from the list, starting from n
+	for i := range itemsShown {
 		currentIndex := n + i
 		if m.choiceIndex == currentIndex {
 			choiceText := fmt.Sprint(styles.GreenText.Render(m.menuItems[currentIndex].name))
-			options += choiceText + "\n"
+			options = append(options, choiceText)
 		} else {
-			options += m.menuItems[currentIndex].name + "\n"
+			options = append(options, m.menuItems[currentIndex].name)
 		}
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar, options)
+
+	return lipgloss.JoinVertical(lipgloss.Left, options...)
 }
 
-func applyChapter(chapterID string) func() tea.Msg {
+func (m chapterSelectionModel) headerView() string {
+	topMsg := "* Choose a chapter *"
+	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
+	topMsg = styles.YellowText.Render(topMsg)
+	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
+}
+
+func (m chapterSelectionModel) getName(index int) string {
+	return m.menuItems[index].name
+}
+
+func (m chapterSelectionModel) getListLength() int {
+	return len(m.menuItems)
+}
+func (m chapterSelectionModel) getChoiceIndex() int {
+	return m.choiceIndex
+}
+
+func selectChapter(chapterID string) func() tea.Msg {
+	// selects a chapter
+	// Queries data for the chapter and opens a new model where the chapter can be read
 	return func() tea.Msg {
 
 		current.chapterData = api_query.ChapterQuery(current.translationID, chapterID)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
@@ -10,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Structs to build the list of books
 type bookSelectionModel struct {
 	menuItems   []bookMenuItem
 	choiceIndex int
@@ -23,13 +23,15 @@ type bookMenuItem struct {
 
 func newBookSelectionScreen() bookSelectionModel {
 
+	// Build the menu items from the Bible translation's data
+	// The data was queried at start up and when the current translation is changed
 	var menuItems = []bookMenuItem{}
 
 	for _, book := range current.translationData.Books {
 		item := bookMenuItem{
 			name:    book.Name,
 			id:      book.ID,
-			command: applyBook,
+			command: selectBook,
 		}
 		menuItems = append(menuItems, item)
 	}
@@ -42,10 +44,14 @@ func newBookSelectionScreen() bookSelectionModel {
 }
 
 func (m bookSelectionModel) Init() tea.Cmd {
+	// No initialization needed
 	return nil
 }
 
 func (m bookSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// Similar to the main menu
+	// The model handles navigating the menu
+	// Calling a choice initiates a query to retrieve data for the chosen book
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -73,31 +79,32 @@ func (m bookSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m bookSelectionModel) View() string {
+
+	return getHeaderWithList(m)
+}
+
+func (m bookSelectionModel) headerView() string {
+	// Styling for the header
 	topMsg := "* Choose a book *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
-
-	var options string
-
-	// Show choices:
-	listLength := len(m.menuItems)
-	itemsShown := min(listLength, window_height-5)
-	// n: top index to show list items from.
-	n := max(0, min(m.choiceIndex-itemsShown/2, listLength-itemsShown))
-
-	for i := range itemsShown {
-		currentIndex := n + i
-		if m.choiceIndex == currentIndex {
-			choiceText := fmt.Sprint(styles.GreenText.Render(m.menuItems[currentIndex].name))
-			options += choiceText + "\n"
-		} else {
-			options += m.menuItems[currentIndex].name + "\n"
-		}
-	}
-	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar, options)
+	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
 }
 
-func applyBook(bookID string) func() tea.Msg {
+func (m bookSelectionModel) getName(index int) string {
+	return m.menuItems[index].name
+}
+
+func (m bookSelectionModel) getListLength() int {
+	return len(m.menuItems)
+}
+func (m bookSelectionModel) getChoiceIndex() int {
+	return m.choiceIndex
+}
+
+func selectBook(bookID string) func() tea.Msg {
+	// selects a book
+	// Queries data for the book and opens a new model where a chapter can be chosen
 	return func() tea.Msg {
 
 		current.bookData = api_query.BookQuery(current.translationID, bookID)
