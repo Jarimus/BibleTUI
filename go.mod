@@ -9,6 +9,7 @@ require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/mitchellh/go-wordwrap v1.0.1
+	github.com/joho/godotenv v1.5.1
 
 )
 

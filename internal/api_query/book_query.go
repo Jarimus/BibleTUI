@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 func BookQuery(translationID, bookID string) BookData {
@@ -19,7 +20,7 @@ func BookQuery(translationID, bookID string) BookData {
 		return BookData{}
 	}
 
-	req.Header.Set("api-key", getApi())
+	req.Header.Set("api-key", os.Getenv("API_KEY"))
 
 	// Perform the request
 	client := http.Client{}

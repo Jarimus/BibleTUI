@@ -1,8 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/joho/godotenv"
 )
 
 // Global variables:
@@ -22,6 +25,12 @@ type currentlyReading struct {
 var current currentlyReading
 
 func main() {
+
+	// Get environmental variables
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 
 	// Initialize with the Finnish translation
 	current.translationName = "Finnish New Testament"

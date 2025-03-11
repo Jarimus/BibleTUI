@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 func TranslationQuery(translationID string) TranslationData {
@@ -18,7 +19,7 @@ func TranslationQuery(translationID string) TranslationData {
 		return TranslationData{}
 	}
 
-	req.Header.Set("api-key", getApi())
+	req.Header.Set("api-key", os.Getenv("API_KEY"))
 
 	// Perform the request
 	client := http.Client{}
