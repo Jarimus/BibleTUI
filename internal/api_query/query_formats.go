@@ -1,6 +1,8 @@
 package api_query
 
-// Old api
+import "time"
+
+// Old api, only for the random verse
 type RandomQuery struct {
 	Translation struct {
 		Identifier   string `json:"identifier"`
@@ -44,9 +46,8 @@ type BookData struct {
 	} `json:"data"`
 }
 
-// Chapter structure. Query:
-// https://api.scripture.api.bible/v1/bibles/[BIBLE-ID]/chapters/[CHAPTER-ID]?content-type=text
-// &include-notes=false&include-titles=true&include-chapter-numbers=false&include-verse-numbers=true&include-verse-spans=false
+// Structure of chapter data acquired from the api.
+// Query: https://api.scripture.api.bible/v1/bibles/[BIBLE-ID]/chapters/[CHAPTER-ID]?content-type=text&include-notes=false&include-titles=true&include-chapter-numbers=false&include-verse-numbers=true&include-verse-spans=false
 type ChapterData struct {
 	Data struct {
 		ID         string `json:"id"`
@@ -67,5 +68,40 @@ type ChapterData struct {
 			Number string `json:"number"`
 			BookID string `json:"bookId"`
 		} `json:"previous"`
+	} `json:"data"`
+}
+
+type BiblesData struct {
+	Data []struct {
+		ID                string `json:"id"`
+		DblID             string `json:"dblId"`
+		Abbreviation      string `json:"abbreviation"`
+		AbbreviationLocal string `json:"abbreviationLocal"`
+		Language          struct {
+			ID              string `json:"id"`
+			Name            string `json:"name"`
+			NameLocal       string `json:"nameLocal"`
+			Script          string `json:"script"`
+			ScriptDirection string `json:"scriptDirection"`
+		} `json:"language"`
+		Countries []struct {
+			ID        string `json:"id"`
+			Name      string `json:"name"`
+			NameLocal string `json:"nameLocal"`
+		} `json:"countries"`
+		Name             string    `json:"name"`
+		NameLocal        string    `json:"nameLocal"`
+		Description      string    `json:"description"`
+		DescriptionLocal string    `json:"descriptionLocal"`
+		RelatedDbl       string    `json:"relatedDbl"`
+		Type             string    `json:"type"`
+		UpdatedAt        time.Time `json:"updatedAt"`
+		AudioBibles      []struct {
+			ID               string `json:"id"`
+			Name             string `json:"name"`
+			NameLocal        string `json:"nameLocal"`
+			Description      string `json:"description"`
+			DescriptionLocal string `json:"descriptionLocal"`
+		} `json:"audioBibles"`
 	} `json:"data"`
 }

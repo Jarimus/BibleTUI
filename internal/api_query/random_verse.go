@@ -2,8 +2,8 @@ package api_query
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -14,13 +14,13 @@ func GetRandomVerse() RandomQuery {
 	// Request a new verse
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	// Read the body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	defer resp.Body.Close()
 
@@ -28,7 +28,7 @@ func GetRandomVerse() RandomQuery {
 	var query RandomQuery
 	err = json.Unmarshal(body, &query)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	return query

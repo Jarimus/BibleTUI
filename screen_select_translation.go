@@ -66,6 +66,11 @@ func newTranslationScreen() translationSelectionModel {
 			command: selectTranslation,
 		},
 		{
+			name:    "Add new translation",
+			id:      "",
+			command: openSelectLanguageScreen,
+		},
+		{
 			name: "Back",
 		},
 	}
@@ -136,5 +141,11 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 		current.translationData = api_query.TranslationQuery(current.translationID)
 
 		return goBackMsg{}
+	}
+}
+
+func openSelectLanguageScreen(string, string) func() tea.Msg {
+	return func() tea.Msg {
+		return newLanguagesScreen()
 	}
 }

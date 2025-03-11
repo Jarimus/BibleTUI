@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -18,7 +19,7 @@ func ChapterQuery(translationID, chapterID string) ChapterData {
 	// Set up the request with a corrent header (API-key needed for API-Bible)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Printf("Error creating request for book data: %v", err)
+		log.Printf("Error creating request for book data: %v", err)
 		return ChapterData{}
 	}
 
@@ -29,14 +30,14 @@ func ChapterQuery(translationID, chapterID string) ChapterData {
 	client := http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Error requesting data for book: %v", err)
+		log.Printf("Error requesting data for book: %v", err)
 		return ChapterData{}
 	}
 
 	// Read the body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("Error reading the body for book query: %v", err)
+		log.Printf("Error reading the body for book query: %v", err)
 		return ChapterData{}
 	}
 	defer resp.Body.Close()
@@ -44,7 +45,7 @@ func ChapterQuery(translationID, chapterID string) ChapterData {
 	// Unmarshal the response
 	var chapterData ChapterData
 	if err := json.Unmarshal(body, &chapterData); err != nil {
-		fmt.Printf("Error unmarshaling body for book query: %v", err)
+		log.Printf("Error unmarshaling body for book query: %v", err)
 	}
 
 	return chapterData
