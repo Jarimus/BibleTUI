@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"slices"
 	"strings"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
@@ -25,7 +27,10 @@ type translationMenuItem struct {
 func newTranslationScreen() translationSelectionModel {
 
 	// Load list of translations from a file
-	translations := LoadTranslationsFromFile()
+	translations, err := loadTranslationsFromFile()
+	if err != nil {
+		log.Printf("error loading translations from a file: %s", err)
+	}
 
 	translations = append(translations, translationMenuItem{
 		name:    "Add new translation",
@@ -65,13 +70,24 @@ func (m translationSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			name := m.menuItems[m.choiceIndex].name
 			id := m.menuItems[m.choiceIndex].id
 			return m, m.menuItems[m.choiceIndex].command(name, id)
+		case tea.KeyDelete.String():
+			if m.menuItems[m.choiceIndex].name != "Add new translation" && m.menuItems[m.choiceIndex].name != "Back" {
+				m.menuItems = slices.Delete(m.menuItems, m.choiceIndex, m.choiceIndex+1)
+				translations := m.menuItems[:len(m.menuItems)-2]
+				saveTranslationsToFile(translations)
+			}
 		}
 	}
 	return m, nil
 }
 
 func (m translationSelectionModel) View() string {
-	return getHeaderWithList(m)
+
+	helpText := "Press 'Del' to remove a translation from the list."
+	helpText = lipgloss.Place(window_width, window_height-lipgloss.Height(getHeaderWithList(m))-1, 0.5, 1, helpText)
+	helpText = styles.InfoText.Render(helpText)
+
+	return lipgloss.JoinVertical(0, getHeaderWithList(m), helpText)
 }
 
 func (m translationSelectionModel) headerView() string {

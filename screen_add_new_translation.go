@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
@@ -28,13 +30,19 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 	for _, translation := range biblesData.Data {
 		var found bool
 		for _, menuItem := range menuItemsList {
-			if menuItem.id == translation.Language.ID {
+			if menuItem.name == translation.Name {
 				found = true
 			}
 		}
 		if !found {
+			var name string
+			if slices.Contains([]string{"", "common"}, strings.ToLower(translation.Description)) {
+				name = translation.Name
+			} else {
+				name = fmt.Sprintf("%s (%s)", translation.Name, translation.Description)
+			}
 			menuItemsList = append(menuItemsList, addTranslationMenuItem{
-				name:    translation.Name,
+				name:    name,
 				id:      translation.ID,
 				command: addNewTranslation,
 			})
@@ -89,7 +97,7 @@ func (m addTranslationModel) View() string {
 }
 
 func (m addTranslationModel) headerView() string {
-	topMsg := "* Choose a language *"
+	topMsg := "* Choose a translation to add *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
 	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
@@ -109,8 +117,20 @@ func (m addTranslationModel) getChoiceIndex() int {
 // Queries for translations of a specific language
 // Opens a new screen to choose a translation
 func addNewTranslation(translationName, translationID string) func() tea.Msg {
-	biblesOfLanguage := api_query.AllTranslationsQuery(translationID)
-	return func() tea.Msg {
-		return biblesOfLanguage
+
+	// add the new translation to the list of translations in the file
+	addTranslationToFile(translationName, translationID)
+
+	// Try to add the new translation directly to the menu?
+	// newTranslationMenuItem := translationMenuItem{
+	// 	name:    translationName,
+	// 	id:      translationID,
+	// 	command: selectTranslation,
+	// }
+
+	goBack := func() tea.Msg {
+		return goBackMsg{}
 	}
+
+	return tea.Batch(goBack, goBack, goBack)
 }

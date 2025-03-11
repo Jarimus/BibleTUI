@@ -7,14 +7,14 @@ import (
 	"sort"
 )
 
+type translationJsonItems struct {
+	Name string `json:"name"`
+	Id   string `json:"id"`
+}
+
 // Look for the file "data/translations.json".
 // If not found, create a set of basic set of items for translations menu
-func LoadTranslationsFromFile() []translationMenuItem {
-
-	type translationJsonItems struct {
-		Name string `json:"name"`
-		Id   string `json:"id"`
-	}
+func loadTranslationsFromFile() ([]translationMenuItem, error) {
 
 	data, err := os.ReadFile("data/translations.json")
 	if err != nil {
@@ -59,12 +59,12 @@ func LoadTranslationsFromFile() []translationMenuItem {
 
 		marshalledTranslation, err := json.Marshal(translations)
 		if err != nil {
-			log.Printf("error marshaling translations to write to a file: %s", err)
+			return nil, err
 		}
 
 		err = os.WriteFile("data/translations.json", marshalledTranslation, 0644)
 		if err != nil {
-			log.Printf("error writing to file 'data/translations.json': %s", err)
+			return nil, err
 		}
 
 		var resultVals []translationMenuItem
@@ -77,7 +77,7 @@ func LoadTranslationsFromFile() []translationMenuItem {
 			})
 		}
 
-		return resultVals
+		return resultVals, nil
 	}
 
 	var translations []translationJsonItems
@@ -85,6 +85,10 @@ func LoadTranslationsFromFile() []translationMenuItem {
 	if err != nil {
 		log.Printf("error unmarshaling translations data from file: %s", err)
 	}
+
+	sort.Slice(translations, func(i, j int) bool {
+		return translations[i].Name < translations[j].Name
+	})
 
 	var resultVals []translationMenuItem
 
@@ -96,9 +100,50 @@ func LoadTranslationsFromFile() []translationMenuItem {
 		})
 	}
 
-	return resultVals
+	return resultVals, nil
 }
 
-func SaveTranslationsToFile(translations []translationMenuItem) error {
+func addTranslationToFile(translationName, translationId string) error {
+
+	translationMenuItems, err := loadTranslationsFromFile()
+	if err != nil {
+		return err
+	}
+
+	var translations []translationJsonItems
+	for _, translation := range translationMenuItems {
+		translations = append(translations, translationJsonItems{
+			Name: translation.name,
+			Id:   translation.id,
+		})
+	}
+	translations = append(translations, translationJsonItems{
+		Name: translationName,
+		Id:   translationId,
+	})
+
+	dataMarshalled, err := json.Marshal(translations)
+	if err != nil {
+		return err
+	}
+
+	os.WriteFile("data/translations.json", dataMarshalled, 0644)
+	return nil
+}
+
+func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
+	var translations []translationJsonItems
+	for _, translation := range translationsMenuItems {
+		translations = append(translations, translationJsonItems{
+			Name: translation.name,
+			Id:   translation.id,
+		})
+	}
+	dataMarshalled, err := json.Marshal(translations)
+	if err != nil {
+		return err
+	}
+
+	os.WriteFile("data/translations.json", dataMarshalled, 0644)
 	return nil
 }

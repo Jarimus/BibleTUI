@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
@@ -44,6 +45,11 @@ func newLanguagesScreen() languageSelectionModel {
 		}
 
 	}
+
+	// Sort alphabetically
+	sort.Slice(menuItemsList, func(i, j int) bool {
+		return menuItemsList[i].name < menuItemsList[j].name
+	})
 
 	menuItemsList = append(menuItemsList, menuItem{
 		name: "Back",
