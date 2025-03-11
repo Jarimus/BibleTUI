@@ -10,24 +10,21 @@ import (
 )
 
 // Structs for the menu model and the menu items
-type languageSelectionModel struct {
-	menuItemsList []menuItem
+type addTranslationModel struct {
+	menuItemsList []addTranslationMenuItem
 	choiceIndex   int
 }
 
-type menuItem struct {
+type addTranslationMenuItem struct {
 	name    string
 	id      string
-	command func(string) func() tea.Msg
+	command func(string, string) func() tea.Msg
 }
 
-func newLanguagesScreen() languageSelectionModel {
-
-	// Query for the languages
-	biblesData := api_query.AllTranslationsQuery("")
+func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationModel {
 
 	// Get all the different languages
-	var menuItemsList = []menuItem{}
+	var menuItemsList = []addTranslationMenuItem{}
 	for _, translation := range biblesData.Data {
 		var found bool
 		for _, menuItem := range menuItemsList {
@@ -36,29 +33,29 @@ func newLanguagesScreen() languageSelectionModel {
 			}
 		}
 		if !found {
-			menuItemsList = append(menuItemsList, menuItem{
-				name:    translation.Language.Name,
-				id:      translation.Language.ID,
-				command: selectLanguage,
+			menuItemsList = append(menuItemsList, addTranslationMenuItem{
+				name:    translation.Name,
+				id:      translation.ID,
+				command: addNewTranslation,
 			})
 		}
 
 	}
 
-	menuItemsList = append(menuItemsList, menuItem{
+	menuItemsList = append(menuItemsList, addTranslationMenuItem{
 		name: "Back",
 	})
 
-	return languageSelectionModel{
+	return addTranslationModel{
 		menuItemsList: menuItemsList,
 	}
 }
 
-func (m languageSelectionModel) Init() tea.Cmd {
+func (m addTranslationModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m languageSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m addTranslationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Model handles navigating the menu
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -79,40 +76,41 @@ func (m languageSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return goBackMsg{}
 				}
 			}
+			name := m.menuItemsList[m.choiceIndex].name
 			id := m.menuItemsList[m.choiceIndex].id
-			return m, m.menuItemsList[m.choiceIndex].command(id)
+			return m, m.menuItemsList[m.choiceIndex].command(name, id)
 		}
 	}
 	return m, nil
 }
 
-func (m languageSelectionModel) View() string {
+func (m addTranslationModel) View() string {
 	return getHeaderWithList(m)
 }
 
-func (m languageSelectionModel) headerView() string {
+func (m addTranslationModel) headerView() string {
 	topMsg := "* Choose a language *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
 	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
 }
 
-func (m languageSelectionModel) getName(index int) string {
+func (m addTranslationModel) getName(index int) string {
 	return m.menuItemsList[index].name
 }
 
-func (m languageSelectionModel) getListLength() int {
+func (m addTranslationModel) getListLength() int {
 	return len(m.menuItemsList)
 }
-func (m languageSelectionModel) getChoiceIndex() int {
+func (m addTranslationModel) getChoiceIndex() int {
 	return m.choiceIndex
 }
 
 // Queries for translations of a specific language
 // Opens a new screen to choose a translation
-func selectLanguage(languageID string) func() tea.Msg {
-	biblesOfLanguage := api_query.AllTranslationsQuery(languageID)
+func addNewTranslation(translationName, translationID string) func() tea.Msg {
+	biblesOfLanguage := api_query.AllTranslationsQuery(translationID)
 	return func() tea.Msg {
-		return newAddTranslationScreen(biblesOfLanguage)
+		return biblesOfLanguage
 	}
 }

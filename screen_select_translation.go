@@ -21,62 +21,23 @@ type translationMenuItem struct {
 	command func(string, string) func() tea.Msg
 }
 
+// return a new TeaModel for a menu to select a translation to use
 func newTranslationScreen() translationSelectionModel {
-	// Translations are retrieved from the API: https://scripture.api.bible/
-	// Translation IDs: https://docs.api.bible/guides/bibles
-	var menuItems = []translationMenuItem{
-		{
-			name:    "Simplified Chinese",
-			id:      "7ea794434e9ea7ee-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "Finnish New Testament",
-			id:      "c739534f6a23acb2-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "American Standard",
-			id:      "685d1470fe4d5c3b-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "King James",
-			id:      "de4e12af7f28f599-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "World English Bible",
-			id:      "9879dbb7cfe39e4d-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "Open Hebrew Living New Testament",
-			id:      "a8a97eebae3c98e4-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "Brenton Greek Septuagint",
-			id:      "c114c33098c4fef1-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "Solid Rock Greek New Testament",
-			id:      "47f396bad37936f0-01",
-			command: selectTranslation,
-		},
-		{
-			name:    "Add new translation",
-			id:      "",
-			command: openSelectLanguageScreen,
-		},
-		{
-			name: "Back",
-		},
-	}
+
+	// Load list of translations from a file
+	translations := LoadTranslationsFromFile()
+
+	translations = append(translations, translationMenuItem{
+		name:    "Add new translation",
+		id:      "",
+		command: openSelectLanguageScreen,
+	})
+	translations = append(translations, translationMenuItem{
+		name: "Back",
+	})
 
 	return translationSelectionModel{
-		menuItems: menuItems,
+		menuItems: translations,
 	}
 }
 
