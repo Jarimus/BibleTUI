@@ -32,6 +32,8 @@ func main() {
 		log.Fatalf("Error loading .env file")
 	}
 
+	println("Loading...")
+
 	// Initialize with the Finnish translation
 	current.translationName = "Finnish New Testament"
 	current.translationID = "c739534f6a23acb2-01"
