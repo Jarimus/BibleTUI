@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
@@ -74,35 +73,14 @@ func (m chapterSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m chapterSelectionModel) View() string {
 
-	var options []string
-
-	options = append(options, m.headerView())
-
-	// When not all items fit the screen, we need to limit them:
-	listLength := len(m.menuItems)
-	itemsShown := min(listLength, window_height-lipgloss.Height(m.headerView()))
-	// n: index for the topmost item shown.
-	n := max(0, min(m.choiceIndex-itemsShown/2, listLength-itemsShown))
-
-	// show i items from the list, starting from n
-	for i := range itemsShown {
-		currentIndex := n + i
-		if m.choiceIndex == currentIndex {
-			choiceText := fmt.Sprint(styles.GreenText.Render(m.menuItems[currentIndex].name))
-			options = append(options, choiceText)
-		} else {
-			options = append(options, m.menuItems[currentIndex].name)
-		}
-	}
-
-	return lipgloss.JoinVertical(lipgloss.Left, options...)
+	return getHeaderWithList(m)
 }
 
 func (m chapterSelectionModel) headerView() string {
 	topMsg := "* Choose a chapter *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
-	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
+	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar)
 }
 
 func (m chapterSelectionModel) getName(index int) string {

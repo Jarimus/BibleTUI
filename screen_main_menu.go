@@ -38,7 +38,7 @@ func newMainMenu() mainMenuModel {
 	}
 
 	m = mainMenuModel{
-		randomVerseVP: viewport.New(window_width, window_height-lipgloss.Height(m.menuView())),
+		randomVerseVP: viewport.New(window_width, window_height-lipgloss.Height(getHeaderWithList(m))),
 		options:       newOptions,
 		choiceIndex:   0,
 	}
@@ -73,7 +73,7 @@ func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		// Resizing the terminal window affects the viewport dimensions
 		m.randomVerseVP.Width = msg.Width
-		m.randomVerseVP.Height = msg.Height - lipgloss.Height(m.menuView())
+		m.randomVerseVP.Height = msg.Height - lipgloss.Height(getHeaderWithList(m))
 	case string:
 		// The only string tea.Msg affects the viewport only
 		m.randomVerseVP.SetContent(msg)
@@ -85,29 +85,30 @@ func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m mainMenuModel) View() string {
 
 	// Join the menu and the verse viewport vertically
-	return lipgloss.JoinVertical(lipgloss.Left, m.menuView(), m.randomVerseVP.View())
+	return lipgloss.JoinVertical(lipgloss.Center, getHeaderWithList(m), m.randomVerseVP.View())
 }
 
-func (m mainMenuModel) menuView() string {
+func (m mainMenuModel) headerView() string {
+	// Styling for the header
+	topMsg := "* Welcome to BibleTUI! *"
+	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
+	topMsg = styles.YellowText.Render(topMsg)
 
-	// Style the header
-	welcomeMsg := "* Welcome to BibleTUI! *"
-	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(welcomeMsg)))
-	welcomeMsg = styles.YellowText.Render(welcomeMsg)
-
-	// Apply color to the currently selected option
-	var options string
-	for i, option := range m.options {
-		if m.choiceIndex == i {
-			choiceText := styles.GreenText.Render(option.text)
-			options += choiceText + "\n"
-		} else {
-			options += option.text + "\n"
-		}
-	}
-	translation := fmt.Sprintf("Current translation: %s\n", current.translationName)
+	translation := fmt.Sprintf("Current translation: %s", current.translationName)
 	translation = styles.InfoText.Render(translation)
-	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, welcomeMsg, topBottomBar, options, translation)
+
+	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar, translation)
+}
+
+func (m mainMenuModel) getName(index int) string {
+	return m.options[index].text
+}
+
+func (m mainMenuModel) getListLength() int {
+	return len(m.options)
+}
+func (m mainMenuModel) getChoiceIndex() int {
+	return m.choiceIndex
 }
 
 func (m mainMenuModel) newRandomVerse() tea.Msg {

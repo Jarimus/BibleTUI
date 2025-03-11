@@ -88,7 +88,7 @@ func (m bookSelectionModel) headerView() string {
 	topMsg := "* Choose a book *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
-	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
+	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar)
 }
 
 func (m bookSelectionModel) getName(index int) string {
