@@ -112,10 +112,14 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 	// Queries a translation and stores the data in memory
 	// Translation data includes, among others, the names and IDs for the books in the translation
 	return func() tea.Msg {
-		current.translationID = translationID
-		current.translationName = translationName
+		apiCfg.CurrentlyReading.TranslationID = translationID
+		apiCfg.CurrentlyReading.TranslationName = translationName
+		apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID)
 
-		current.translationData = api_query.TranslationQuery(current.translationID)
+		err := saveSettings()
+		if err != nil {
+			return err
+		}
 
 		return goBackMsg{}
 	}

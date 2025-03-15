@@ -27,7 +27,7 @@ func newBookSelectionScreen() bookSelectionModel {
 	// The data was queried at start up and when the current translation is changed
 	var menuItems = []bookMenuItem{}
 
-	for _, book := range current.translationData.Books {
+	for _, book := range apiCfg.CurrentlyReading.TranslationData.Books {
 		item := bookMenuItem{
 			name:    book.Name,
 			id:      book.ID,
@@ -107,7 +107,7 @@ func selectBook(bookID string) func() tea.Msg {
 	// Queries data for the book and opens a new model where a chapter can be chosen
 	return func() tea.Msg {
 
-		current.bookData = api_query.BookQuery(current.translationID, bookID)
+		apiCfg.CurrentlyReading.BookData = api_query.BookQuery(apiCfg.CurrentlyReading.TranslationID, bookID)
 
 		return newChapterSelectionScreen()
 	}

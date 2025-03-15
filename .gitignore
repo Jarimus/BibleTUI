@@ -1,5 +1,6 @@
 planning/
 debug.txt
 BibleTUI.exe
+BibleTUI
 .env
-data/
+translations.json

@@ -94,7 +94,7 @@ func (m mainMenuModel) headerView() string {
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
 
-	translation := fmt.Sprintf("Current translation: %s", current.translationName)
+	translation := fmt.Sprintf("Current translation: %s", apiCfg.CurrentlyReading.TranslationName)
 	translation = styles.InfoText.Render(translation)
 
 	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar, translation)

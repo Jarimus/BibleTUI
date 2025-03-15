@@ -45,8 +45,8 @@ func newBibleScreen() bibleScreenModel {
 
 	// Apply the chapter content and title to the model
 	newBibleScreen := bibleScreenModel{
-		title:     current.chapterData.Data.Reference,
-		bibleText: current.chapterData.Data.Content,
+		title:     apiCfg.CurrentlyReading.ChapterData.Data.Reference,
+		bibleText: apiCfg.CurrentlyReading.ChapterData.Data.Content,
 	}
 
 	// Generate a viewport from the dimensions of the global variables
@@ -95,8 +95,8 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Retrieving the Bible chapter updates the viewport text
 	case api_query.ChapterData:
-		m.title = current.chapterData.Data.Reference
-		m.bibleText = current.chapterData.Data.Content
+		m.title = apiCfg.CurrentlyReading.ChapterData.Data.Reference
+		m.bibleText = apiCfg.CurrentlyReading.ChapterData.Data.Content
 		m.viewport.SetContent(formatBibleText(m.bibleText))
 		m.viewport.YOffset = 0
 
@@ -142,19 +142,19 @@ func (m bibleScreenModel) footerView() string {
 
 func toPreviousChapter() tea.Msg {
 	// Query the previous chapter and return it as a tea.Msg for the model to process
-	if current.chapterData.Data.Previous.ID == "" {
+	if apiCfg.CurrentlyReading.ChapterData.Data.Previous.ID == "" {
 		return nil
 	}
-	chapterData := api_query.ChapterQuery(current.translationID, current.chapterData.Data.Previous.ID)
+	chapterData := api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.CurrentlyReading.ChapterData.Data.Previous.ID)
 	return chapterData
 }
 
 func toNextChapter() tea.Msg {
 	// Query the next chapter and return it as a tea.Msg for the model to process
-	if current.chapterData.Data.Next.ID == "" {
+	if apiCfg.CurrentlyReading.ChapterData.Data.Next.ID == "" {
 		return nil
 	}
-	chapterData := api_query.ChapterQuery(current.translationID, current.chapterData.Data.Next.ID)
+	chapterData := api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.CurrentlyReading.ChapterData.Data.Next.ID)
 	return chapterData
 }
 

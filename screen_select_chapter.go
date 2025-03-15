@@ -24,7 +24,7 @@ type chapterMenuItem struct {
 func newChapterSelectionScreen() chapterSelectionModel {
 	var menuItems = []chapterMenuItem{}
 
-	for _, chapter := range current.bookData.Chapters {
+	for _, chapter := range apiCfg.CurrentlyReading.BookData.Chapters {
 		item := chapterMenuItem{
 			name:    chapter.Reference,
 			id:      chapter.ID,
@@ -99,7 +99,7 @@ func selectChapter(chapterID string) func() tea.Msg {
 	// Queries data for the chapter and opens a new model where the chapter can be read
 	return func() tea.Msg {
 
-		current.chapterData = api_query.ChapterQuery(current.translationID, chapterID)
+		apiCfg.CurrentlyReading.ChapterData = api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, chapterID)
 
 		return newBibleScreen()
 	}
