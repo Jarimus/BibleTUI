@@ -5,3 +5,4 @@ BibleTUI
 .env
 translations.json
 internal/api_query/my_api_key.go
+settings.json
