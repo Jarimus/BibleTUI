@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 )
 
 func ChapterQuery(translationID, chapterID string) ChapterData {
@@ -24,7 +23,7 @@ func ChapterQuery(translationID, chapterID string) ChapterData {
 	}
 
 	// If you do not have an api-key, you have to make an account at https://scripture.api.bible/ to get one.
-	req.Header.Set("api-key", os.Getenv("API_KEY"))
+	req.Header.Set("api-key", getApiKey())
 
 	// Perform the request
 	client := http.Client{}

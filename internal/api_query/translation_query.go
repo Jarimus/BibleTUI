@@ -22,7 +22,7 @@ func TranslationQuery(translationID string) TranslationData {
 		return TranslationData{}
 	}
 
-	req.Header.Set("api-key", os.Getenv("API_KEY"))
+	req.Header.Set("api-key", getApiKey())
 
 	// Perform the request
 	client := http.Client{}
