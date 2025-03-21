@@ -22,7 +22,7 @@ type settings struct {
 const translationsFilePath = "translations.json"
 const settingsFilePath = "settings.json"
 
-// Look for the file "data/translations.json".
+// Look for the file "translations.json".
 // If not found, create a set of basic set of items for translations menu
 func loadTranslationsFromFile() ([]translationMenuItem, error) {
 

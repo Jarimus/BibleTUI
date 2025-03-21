@@ -114,19 +114,16 @@ func (m addTranslationModel) getChoiceIndex() int {
 	return m.choiceIndex
 }
 
-// Queries for translations of a specific language
-// Opens a new screen to choose a translation
+// Adds the chosen translation to the list of translations.
 func addNewTranslation(translationName, translationID string) func() tea.Msg {
 
 	// add the new translation to the list of translations in the file
 	addTranslationToFile(translationName, translationID)
 
-	// Try to add the new translation directly to the menu?
-	// newTranslationMenuItem := translationMenuItem{
-	// 	name:    translationName,
-	// 	id:      translationID,
-	// 	command: selectTranslation,
-	// }
+	// Set the current translation to the newly added translation
+	apiCfg.CurrentlyReading.TranslationName = translationName
+	apiCfg.CurrentlyReading.TranslationID = translationID
+	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translationID)
 
 	goBack := func() tea.Msg {
 		return goBackMsg{}
