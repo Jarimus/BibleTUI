@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 )
 
 // Query the api for a translation.
@@ -64,7 +63,7 @@ func AllTranslationsQuery(languageID string) BiblesData {
 		log.Printf("Error creating request for all Bibles: %s", err)
 		return BiblesData{}
 	}
-	req.Header.Set("api-key", os.Getenv("API_KEY"))
+	req.Header.Set("api-key", getApiKey())
 
 	// Perform the request
 	client := http.Client{}
