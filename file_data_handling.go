@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 	"sort"
-
-	"github.com/joho/godotenv"
 )
 
 type translationJsonItems struct {
@@ -159,10 +157,6 @@ func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
 }
 
 func loadSettings() (settings, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return settings{}, err
-	}
 
 	var settingsData settings
 
