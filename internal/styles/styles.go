@@ -33,5 +33,7 @@ func GetStyleDimensions(style lipgloss.Style) (height int, width int) {
 	// Margin dimensions
 	marginV := style.GetMarginTop() + style.GetMarginBottom()
 	marginH := style.GetMarginLeft() + style.GetMarginRight()
+
+	// Return all the dimensions combined
 	return borderV + paddingV + marginV, borderH + paddingH + marginH
 }

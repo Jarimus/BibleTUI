@@ -125,6 +125,14 @@ func addNewTranslation(translationName, translationID string) func() tea.Msg {
 	apiCfg.CurrentlyReading.TranslationID = translationID
 	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translationID)
 
+	err := saveSettings()
+	if err != nil {
+		errorF := func() tea.Msg {
+			return err
+		}
+		return errorF
+	}
+
 	goBack := func() tea.Msg {
 		return goBackMsg{}
 	}
