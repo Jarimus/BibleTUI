@@ -62,7 +62,7 @@ func newBibleScreen() bibleScreenModel {
 	newBibleScreen.viewport.YPosition = headerHeight
 
 	// Apply the formatted Bible text to the viewport
-	newBibleScreen.viewport.SetContent(formatBibleText(newBibleScreen.bibleText))
+	newBibleScreen.viewport.SetContent(formatBibleText(newBibleScreen.bibleText, newBibleScreen.viewport.Width))
 
 	// Return the model
 	return newBibleScreen
@@ -91,13 +91,13 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.Width = msg.Width - horizontalMargin
 		m.viewport.Height = msg.Height - verticalMargin
 
-		m.viewport.SetContent(formatBibleText(m.bibleText))
+		m.viewport.SetContent(formatBibleText(m.bibleText, m.viewport.Width))
 
 	// Retrieving the Bible chapter updates the viewport text
 	case api_query.ChapterData:
 		m.title = apiCfg.CurrentlyReading.ChapterData.Data.Reference
 		m.bibleText = apiCfg.CurrentlyReading.ChapterData.Data.Content
-		m.viewport.SetContent(formatBibleText(m.bibleText))
+		m.viewport.SetContent(formatBibleText(m.bibleText, m.viewport.Width))
 		m.viewport.YOffset = 0
 
 	// Pressing left and right moves between the chapters
@@ -158,13 +158,10 @@ func toNextChapter() tea.Msg {
 	return chapterData
 }
 
-func formatBibleText(text string) string {
+func formatBibleText(text string, width int) string {
 	// formats the Bible text for the viewport. Need linebreaks for the viewport to handle scrolling properly.
 	formattedText := strings.ReplaceAll(text, "[", "\n[")
-	formattedText = wordwrap.WrapString(formattedText, uint(window_width-2))
-
-	// Temporary solution: Add extra linebreaks at the end for the viewport to scroll properly
-	formattedText += strings.Repeat("\n", 7)
+	formattedText = wordwrap.WrapString(formattedText, uint(width))
 
 	return formattedText
 }
