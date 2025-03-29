@@ -1,9 +1,16 @@
 # BibleTUI
 
+![BibleTUI video](BibleTUI.gif)
+
 ## Description
 - Get different Bible translations from API.Bible in a multitude of languages!
 - Read them in the command line!
 - Keep a record of your favourite translations.
+
+## Why
+Bibles come in many forms: physical books, e-books, audio books, etc.
+
+But command line? With a easy-to-use interface? Welcome to BibleTUI!
 
 ## How to use
 1.  Go to the [API Bible page](https://scripture.api.bible/)
@@ -15,11 +22,9 @@
 ## Upcoming features
 - Switch between users who can have their own list of translations.
 - Implement a proper database instead of simple json files.
+- Enter your api-key within the interface.
 
 ## Contributing
 All help is greatly appreciated! Contribute by forking the repo and opening pull requests.
 
 All pull requests should be submitted to the main branch.
-
-
-![BibleTUI image](BibleTUI.png)
