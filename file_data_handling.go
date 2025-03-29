@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"sort"
+
+	"github.com/Jarimus/BibleTUI/internal/config"
 )
 
 type translationJsonItems struct {
@@ -12,16 +14,11 @@ type translationJsonItems struct {
 	Id   string `json:"id"`
 }
 
-type settings struct {
-	TranslationName string `json:"name"`
-	TranslationID   string `json:"id"`
-}
-
 const translationsFilePath = "translations.json"
 const settingsFilePath = "settings.json"
 
-// Look for the file "translations.json".
-// If not found, create a set of basic set of items for translations menu
+// Look for the translation json-file.
+// If not found, create a set of basic set of items for the translations menu.
 func loadTranslationsFromFile() ([]translationMenuItem, error) {
 
 	data, err := os.ReadFile(translationsFilePath)
@@ -65,7 +62,7 @@ func loadTranslationsFromFile() ([]translationMenuItem, error) {
 			return translations[i].Name < translations[j].Name
 		})
 
-		marshalledTranslation, err := json.Marshal(translations)
+		marshalledTranslation, err := json.MarshalIndent(translations, "", "  ")
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +127,7 @@ func addTranslationToFile(translationName, translationId string) error {
 		Id:   translationId,
 	})
 
-	dataMarshalled, err := json.Marshal(translations)
+	dataMarshalled, err := json.MarshalIndent(translations, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -151,7 +148,7 @@ func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
 			Id:   translation.id,
 		})
 	}
-	dataMarshalled, err := json.Marshal(translations)
+	dataMarshalled, err := json.MarshalIndent(translations, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -163,33 +160,32 @@ func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
 	return nil
 }
 
-func loadSettings() (settings, error) {
+// Loads and return the apiCfg from a json-file.
+// If file is not found, returns an empty config file with a default Bible translation as the current translation.
+func loadSettings() (config.Config, error) {
 
-	var settingsData settings
+	var cfg config.Config
 
 	fileData, err := os.ReadFile(settingsFilePath)
 	if err != nil {
-		settingsData.TranslationName = "Finnish New Testament"
-		settingsData.TranslationID = "c739534f6a23acb2-01"
-		return settingsData, nil
+		cfg.CurrentlyReading.TranslationName = "Finnish New Testament"
+		cfg.CurrentlyReading.TranslationID = "c739534f6a23acb2-01"
+		return cfg, nil
 	}
 
-	err = json.Unmarshal(fileData, &settingsData)
+	err = json.Unmarshal(fileData, &cfg)
 	if err != nil {
-		return settings{}, err
+		var emptyConfig config.Config
+		return emptyConfig, err
 	}
 
-	return settingsData, nil
+	return cfg, nil
 }
 
+// Saves the apiCfg to a json-file.
 func saveSettings() error {
 
-	settingsData := settings{
-		TranslationName: apiCfg.CurrentlyReading.TranslationName,
-		TranslationID:   apiCfg.CurrentlyReading.TranslationID,
-	}
-
-	jsonData, err := json.Marshal(settingsData)
+	jsonData, err := json.MarshalIndent(apiCfg, "", "  ")
 	if err != nil {
 		return err
 	}

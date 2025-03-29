@@ -21,19 +21,17 @@ func main() {
 	println("Loading...")
 
 	// Get settings
-	settingsData, err := loadSettings()
+	apiCfg, err := loadSettings()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Initialize with the current  translation
-	apiCfg.CurrentlyReading.TranslationName = settingsData.TranslationName
-	apiCfg.CurrentlyReading.TranslationID = settingsData.TranslationID
 	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID)
 
 	mainMenu := newMainMenu()
 
-	// Root screen holds the other moddels in a "stack" (slice) and displays the one at the top.
+	// Root screen holds the other models in a "stack" (slice) and displays the one at the top.
 	root := newRootScreen([]tea.Model{mainMenu})
 	p := tea.NewProgram(root)
 	_, err = p.Run()

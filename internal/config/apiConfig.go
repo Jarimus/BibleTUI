@@ -5,13 +5,13 @@ import (
 )
 
 type currentlyReading struct {
-	TranslationName string
-	TranslationID   string
-	TranslationData api_query.TranslationData
-	BookData        api_query.BookData
-	ChapterData     api_query.ChapterData
+	TranslationName string `json:"translation_name"`
+	TranslationID   string `json:"translation_id"`
+	TranslationData api_query.TranslationData `json:"translation_data"`
+	BookData        api_query.BookData `json:"book_data"`
+	ChapterData     api_query.ChapterData `json:"chapter_data"`
 }
 
 type Config struct {
-	CurrentlyReading currentlyReading
+	CurrentlyReading currentlyReading `json:"currently_reading"`
 }
