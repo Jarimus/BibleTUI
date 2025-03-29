@@ -74,7 +74,10 @@ func (m translationSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.menuItems[m.choiceIndex].name != "Add new translation" && m.menuItems[m.choiceIndex].name != "Back" {
 				m.menuItems = slices.Delete(m.menuItems, m.choiceIndex, m.choiceIndex+1)
 				translations := m.menuItems[:len(m.menuItems)-2]
-				saveTranslationsToFile(translations)
+				err := saveTranslationsToFile(translations)
+				if err != nil {
+					log.Fatalf("error saving translation: %s", err)
+				}
 			}
 		}
 	}

@@ -159,7 +159,11 @@ func toNextChapter() tea.Msg {
 }
 
 func formatBibleText(text string, width int) string {
-	// formats the Bible text for the viewport. Need linebreaks for the viewport to handle scrolling properly.
+	// formats the Bible text for the viewport. Linebreaks are needed for the viewport to handle scrolling properly.
+
+	if width < 0 {
+		return text // Ensure width is non-negative to avoid overflow
+	}
 	formattedText := strings.ReplaceAll(text, "[", "\n[")
 	formattedText = wordwrap.WrapString(formattedText, uint(width))
 

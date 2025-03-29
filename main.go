@@ -36,5 +36,8 @@ func main() {
 	// Root screen holds the other moddels in a "stack" (slice) and displays the one at the top.
 	root := newRootScreen([]tea.Model{mainMenu})
 	p := tea.NewProgram(root)
-	p.Run()
+	_, err = p.Run()
+	if err != nil {
+		log.Fatalf("error starting the program: %s", err)
+	}
 }

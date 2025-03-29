@@ -70,7 +70,7 @@ func loadTranslationsFromFile() ([]translationMenuItem, error) {
 			return nil, err
 		}
 
-		err = os.WriteFile(translationsFilePath, marshalledTranslation, 0644)
+		err = os.WriteFile(translationsFilePath, marshalledTranslation, 0600)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +135,11 @@ func addTranslationToFile(translationName, translationId string) error {
 		return err
 	}
 
-	os.WriteFile(translationsFilePath, dataMarshalled, 0644)
+	err = os.WriteFile(translationsFilePath, dataMarshalled, 0600)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -152,7 +156,10 @@ func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
 		return err
 	}
 
-	os.WriteFile(translationsFilePath, dataMarshalled, 0644)
+	err = os.WriteFile(translationsFilePath, dataMarshalled, 0600)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -187,7 +194,10 @@ func saveSettings() error {
 		return err
 	}
 
-	os.WriteFile(settingsFilePath, jsonData, 0644)
+	err = os.WriteFile(settingsFilePath, jsonData, 0600)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -118,14 +118,20 @@ func (m addTranslationModel) getChoiceIndex() int {
 func addNewTranslation(translationName, translationID string) func() tea.Msg {
 
 	// add the new translation to the list of translations in the file
-	addTranslationToFile(translationName, translationID)
+	err := addTranslationToFile(translationName, translationID)
+	if err != nil {
+		errorF := func() tea.Msg {
+			return err
+		}
+		return errorF
+	}
 
 	// Set the current translation to the newly added translation
 	apiCfg.CurrentlyReading.TranslationName = translationName
 	apiCfg.CurrentlyReading.TranslationID = translationID
 	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translationID)
 
-	err := saveSettings()
+	err = saveSettings()
 	if err != nil {
 		errorF := func() tea.Msg {
 			return err
