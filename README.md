@@ -1,6 +1,6 @@
 # BibleTUI
 
-![BibleTUI video](BibleTUI.gif)
+![BibleTUI video](assets/BibleTUI.gif)
 
 ## Description
 - Get different Bible translations from API.Bible in a multitude of languages!
