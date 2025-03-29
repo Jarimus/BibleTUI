@@ -21,6 +21,7 @@ type bookMenuItem struct {
 	command func(string) func() tea.Msg
 }
 
+// Returns a new model that displays a list of books in the current translations as a list.
 func newBookSelectionScreen() bookSelectionModel {
 
 	// Build the menu items from the Bible translation's data
@@ -83,6 +84,7 @@ func (m bookSelectionModel) View() string {
 	return getHeaderWithList(m)
 }
 
+// Returns the header of the model as a string.
 func (m bookSelectionModel) headerView() string {
 	// Styling for the header
 	topMsg := "* Choose a book *"
@@ -91,20 +93,24 @@ func (m bookSelectionModel) headerView() string {
 	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar)
 }
 
+// Returns the name of the menu item at index as a string.
 func (m bookSelectionModel) getName(index int) string {
 	return m.menuItems[index].name
 }
 
+// Return the length of the menu list as an integer.
 func (m bookSelectionModel) getListLength() int {
 	return len(m.menuItems)
 }
+
+// Return the current cursor placement as an integer.
 func (m bookSelectionModel) getChoiceIndex() int {
 	return m.choiceIndex
 }
 
+// selects a book
+// Queries data for the book and opens a new model where a chapter can be chosen
 func selectBook(bookID string) func() tea.Msg {
-	// selects a book
-	// Queries data for the book and opens a new model where a chapter can be chosen
 	return func() tea.Msg {
 
 		apiCfg.CurrentlyReading.BookData = api_query.BookQuery(apiCfg.CurrentlyReading.TranslationID, bookID)

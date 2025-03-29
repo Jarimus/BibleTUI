@@ -23,7 +23,7 @@ type translationMenuItem struct {
 	command func(string, string) func() tea.Msg
 }
 
-// return a new TeaModel for a menu to select a translation to use
+// return a new tea.Model for a menu to select a translation to use.
 func newTranslationScreen() translationSelectionModel {
 
 	// Load list of translations from a file
@@ -93,6 +93,7 @@ func (m translationSelectionModel) View() string {
 	return lipgloss.JoinVertical(0, getHeaderWithList(m), helpText)
 }
 
+// Returns the header of the model as a string.
 func (m translationSelectionModel) headerView() string {
 	topMsg := "* Choose a translation *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
@@ -100,20 +101,24 @@ func (m translationSelectionModel) headerView() string {
 	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
 }
 
+// Returns the name of the menu item at index as a string.
 func (m translationSelectionModel) getName(index int) string {
 	return m.menuItems[index].name
 }
 
+// Return the length of the menu list as an integer.
 func (m translationSelectionModel) getListLength() int {
 	return len(m.menuItems)
 }
+
+// Return the current cursor placement as an integer.
 func (m translationSelectionModel) getChoiceIndex() int {
 	return m.choiceIndex
 }
 
+// Queries a translation and stores the data in memory
+// Translation data includes, among others, the names and IDs for the books in the translation
 func selectTranslation(translationName, translationID string) func() tea.Msg {
-	// Queries a translation and stores the data in memory
-	// Translation data includes, among others, the names and IDs for the books in the translation
 	return func() tea.Msg {
 		apiCfg.CurrentlyReading.TranslationID = translationID
 		apiCfg.CurrentlyReading.TranslationName = translationName
@@ -128,6 +133,7 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 	}
 }
 
+// Return a function the returns a 
 func openSelectLanguageScreen(string, string) func() tea.Msg {
 	return func() tea.Msg {
 		return newLanguagesScreen()

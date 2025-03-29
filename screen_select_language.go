@@ -22,6 +22,7 @@ type menuItem struct {
 	command func(string) func() tea.Msg
 }
 
+// Returns a model that displays the languages available for all the translations in the api.
 func newLanguagesScreen() languageSelectionModel {
 
 	// Query for the languages
@@ -96,6 +97,7 @@ func (m languageSelectionModel) View() string {
 	return getHeaderWithList(m)
 }
 
+// Returns the header of the model as a string.
 func (m languageSelectionModel) headerView() string {
 	topMsg := "* Choose a language *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
@@ -103,13 +105,17 @@ func (m languageSelectionModel) headerView() string {
 	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
 }
 
+// Returns the name of the menu item at index as a string.
 func (m languageSelectionModel) getName(index int) string {
 	return m.menuItemsList[index].name
 }
 
+// Return the length of the menu list as an integer.
 func (m languageSelectionModel) getListLength() int {
 	return len(m.menuItemsList)
 }
+
+// Return the current cursor placement as an integer.
 func (m languageSelectionModel) getChoiceIndex() int {
 	return m.choiceIndex
 }

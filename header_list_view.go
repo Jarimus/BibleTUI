@@ -15,6 +15,8 @@ type headerListModel interface {
 	getChoiceIndex() int
 }
 
+// Puts together the model's header and list items and returns them as a string.
+// The string is centered to the window and header is placed above the list.
 func getHeaderWithList(m headerListModel) string {
 	var elements []string
 

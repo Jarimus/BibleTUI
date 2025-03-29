@@ -25,6 +25,7 @@ type option struct {
 	command tea.Cmd
 }
 
+// Return a tea.model that displays the main menu.
 func newMainMenu() mainMenuModel {
 
 	var m mainMenuModel
@@ -88,6 +89,7 @@ func (m mainMenuModel) View() string {
 	return lipgloss.JoinVertical(lipgloss.Center, getHeaderWithList(m), m.randomVerseVP.View())
 }
 
+// Returns the header as a string.
 func (m mainMenuModel) headerView() string {
 	// Styling for the header
 	topMsg := "* Welcome to BibleTUI! *"
@@ -100,17 +102,22 @@ func (m mainMenuModel) headerView() string {
 	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar, translation)
 }
 
+// Returns the name of the menu item at index as a string.
 func (m mainMenuModel) getName(index int) string {
 	return m.options[index].text
 }
 
+// Return the length of the menu list as an integer.
 func (m mainMenuModel) getListLength() int {
 	return len(m.options)
 }
+
+// Return the current cursor placement as an integer.
 func (m mainMenuModel) getChoiceIndex() int {
 	return m.choiceIndex
 }
 
+// Uses the internal api_query package to query a random verse from the api and returns the query as a tea.Msg (struct).
 func (m mainMenuModel) newRandomVerse() tea.Msg {
 	// Queries a new random verse and return it as a tea.Msg. Model processes it to the viewport.
 
@@ -120,11 +127,14 @@ func (m mainMenuModel) newRandomVerse() tea.Msg {
 
 }
 
+// Returns a tea.Msg (string) to be displayed in the main menu.
+// This is a placeholder text while the api is being queried for a random verse.
 func waitingForVerse() tea.Msg {
 	// A message while the random verse is being fetched.
 	return "Loading a random verse..."
 }
 
+// When the tea.Model receives a random verse as a tea.Msg, it uses this function to apply the verse to the model to be displayed.
 func (m *mainMenuModel) applyRandomVerse(query api_query.RandomQuery) {
 	// Apply the new random verse, formatted
 	bibleText, _ := strings.CutSuffix(query.RandomVerse.Text, "\n")

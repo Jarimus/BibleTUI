@@ -108,6 +108,7 @@ func loadTranslationsFromFile() ([]translationMenuItem, error) {
 	return resultVals, nil
 }
 
+// Loads the current list of translation from a file, adds the new translation, and writes the new list to the file.
 func addTranslationToFile(translationName, translationId string) error {
 
 	translationMenuItems, err := loadTranslationsFromFile()
@@ -140,6 +141,7 @@ func addTranslationToFile(translationName, translationId string) error {
 	return nil
 }
 
+// Saves the list of translations (open in the current screen) to a file.
 func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
 	var translations []translationJsonItems
 	for _, translation := range translationsMenuItems {

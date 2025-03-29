@@ -13,6 +13,8 @@ type rootScreenModel struct {
 	models []tea.Model
 }
 
+// Return a tea.Model that serves as the root for other models (screens).
+// It stores the other models in a slice and displays the one at the top of stack (last one).
 func newRootScreen(models []tea.Model) rootScreenModel {
 	// Initialize with a slice of models
 	return rootScreenModel{
@@ -29,6 +31,7 @@ func (m rootScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Root model handles tea.Msg's that affect which model is being displayed:
 	// new models are added to the stack and some tea.Msg's remove the top model from the stack
 	switch msg := msg.(type) {
+	// New screens need to be returned as tea.Msg so that the root model can grab them and append them to the list of models.
 	case tea.Model:
 		m.models = append(m.models, msg)
 		return m, nil
@@ -65,6 +68,9 @@ func (m rootScreenModel) View() string {
 
 type goBackMsg struct{}
 
+// When the root receives a goBackMsg structm goBack function is called.
+// The function removes the top model (screen) from the slice of models, effectively moving the interface to the next model in the stack.
+// If there is only one model in the stack, the program quits.
 func (m rootScreenModel) goBack() (rootScreenModel, tea.Cmd) {
 	// a goBackMsg from other models removes the top model from the stack
 	// If there is only one model on the stack, quit the program

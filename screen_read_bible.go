@@ -41,6 +41,7 @@ type bibleScreenModel struct {
 	viewport  viewport.Model
 }
 
+// Initiates a new screen with a viewport to read the current Bible translation.
 func newBibleScreen() bibleScreenModel {
 
 	// Apply the chapter content and title to the model
@@ -118,30 +119,30 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// Style and render the viewport with the header and the footer
 func (m bibleScreenModel) View() string {
-	// Style and render the viewport with the header and the footer
 	text := vpStyle.Render(m.viewport.View())
 	return lipgloss.JoinVertical(lipgloss.Top, m.headerView(), text, m.footerView())
 }
 
+// Style and render the header
 func (m bibleScreenModel) headerView() string {
-	// Style and render the header
 	title := titleStyle.Render(m.title)
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
 
+// Style and render the footer
 func (m bibleScreenModel) footerView() string {
-	// Style and render the footer
-	help := "↑↓: scroll | esc: quit | ← →: previous/next chapter"
+	help := "↑↓: scroll | ← →: previous/next chapter | esc: quit"
 	info := infoStyle.Render(fmt.Sprintf("%s | %3.f%%", help, m.viewport.ScrollPercent()*100))
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(info)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 
 }
 
+// Query the previous chapter and return it as a tea.Msg for the model to process
 func toPreviousChapter() tea.Msg {
-	// Query the previous chapter and return it as a tea.Msg for the model to process
 	if apiCfg.CurrentlyReading.ChapterData.Data.Previous.ID == "" {
 		return nil
 	}
@@ -149,8 +150,8 @@ func toPreviousChapter() tea.Msg {
 	return chapterData
 }
 
+// Query the next chapter and return it as a tea.Msg for the model to process
 func toNextChapter() tea.Msg {
-	// Query the next chapter and return it as a tea.Msg for the model to process
 	if apiCfg.CurrentlyReading.ChapterData.Data.Next.ID == "" {
 		return nil
 	}
@@ -158,8 +159,8 @@ func toNextChapter() tea.Msg {
 	return chapterData
 }
 
+// formats the Bible text for the viewport. Linebreaks are needed for the viewport to handle scrolling properly.
 func formatBibleText(text string, width int) string {
-	// formats the Bible text for the viewport. Linebreaks are needed for the viewport to handle scrolling properly.
 
 	if width < 0 {
 		return text // Ensure width is non-negative to avoid overflow

@@ -23,9 +23,10 @@ type addTranslationMenuItem struct {
 	command func(string, string) func() tea.Msg
 }
 
+// Creates a new tea.Model to display all the different translations from which a new translation can be picked.
 func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationModel {
 
-	// Get all the different languages
+	// Get all the different translations for the language
 	var menuItemsList = []addTranslationMenuItem{}
 	for _, translation := range biblesData.Data {
 		var found bool
@@ -35,6 +36,7 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 			}
 		}
 		if !found {
+			// Adds the description to the 
 			var name string
 			if slices.Contains([]string{"", "common"}, strings.ToLower(translation.Description)) {
 				name = translation.Name
@@ -96,6 +98,7 @@ func (m addTranslationModel) View() string {
 	return getHeaderWithList(m)
 }
 
+// Return the header as a string
 func (m addTranslationModel) headerView() string {
 	topMsg := "* Choose a translation to add *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
@@ -103,18 +106,23 @@ func (m addTranslationModel) headerView() string {
 	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
 }
 
+// Returns the name of the menu item at index as a string.
 func (m addTranslationModel) getName(index int) string {
 	return m.menuItemsList[index].name
 }
 
+// Return the length of the menu list as an integer.
 func (m addTranslationModel) getListLength() int {
 	return len(m.menuItemsList)
 }
+
+// Return the current cursor placement as an integer.
 func (m addTranslationModel) getChoiceIndex() int {
 	return m.choiceIndex
 }
 
 // Adds the chosen translation to the list of translations.
+// Also sets the new translation as the current translation.
 func addNewTranslation(translationName, translationID string) func() tea.Msg {
 
 	// add the new translation to the list of translations in the file
