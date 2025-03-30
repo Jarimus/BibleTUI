@@ -1,11 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
-	"github.com/Jarimus/BibleTUI/internal/config"
+	"github.com/Jarimus/BibleTUI/internal/database"
 	tea "github.com/charmbracelet/bubbletea"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Global variables:
@@ -13,20 +15,44 @@ import (
 var window_width int
 var window_height int
 
-// struct for the data of the current Bible, its books and the current chapter being read.
-var apiCfg config.Config
+// Struct for the data about the current translation being read.
+type currentlyReading struct {
+	TranslationName string                    `json:"translation_name"`
+	TranslationID   string                    `json:"translation_id"`
+	TranslationData api_query.TranslationData `json:"translation_data"`
+	BookData        api_query.BookData        `json:"book_data"`
+	ChapterData     api_query.ChapterData     `json:"chapter_data"`
+}
+
+// A config struct for current translation, user, database queries
+type config struct {
+	CurrentlyReading currentlyReading `json:"currently_reading"`
+	CurrentUser      string
+	dbQueries        *database.Queries
+}
+
+var apiCfg config
 
 func main() {
 
 	println("Loading...")
 
+	var err error
 	// Get settings
-	apiCfg, err := loadSettings()
+	apiCfg, err = loadSettings()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Initialize with the current  translation
+	// Connect to database
+	db, err := sql.Open("sqlite3", "bibletui.db")
+	if err != nil {
+		log.Fatalf("error opening connection to database: %s", err)
+	}
+	dbQueries := database.New(db)
+	apiCfg.dbQueries = dbQueries
+
+	// Initialize with the current translation
 	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID)
 
 	mainMenu := newMainMenu()

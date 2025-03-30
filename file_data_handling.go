@@ -6,7 +6,6 @@ import (
 	"os"
 	"sort"
 
-	"github.com/Jarimus/BibleTUI/internal/config"
 )
 
 type translationJsonItems struct {
@@ -164,9 +163,9 @@ func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
 
 // Loads and return the apiCfg from a json-file.
 // If file is not found, returns an empty config file with a default Bible translation as the current translation.
-func loadSettings() (config.Config, error) {
+func loadSettings() (config, error) {
 
-	var cfg config.Config
+	var cfg config
 
 	fileData, err := os.ReadFile(settingsFilePath)
 	if err != nil {
@@ -177,7 +176,7 @@ func loadSettings() (config.Config, error) {
 
 	err = json.Unmarshal(fileData, &cfg)
 	if err != nil {
-		var emptyConfig config.Config
+		var emptyConfig config
 		return emptyConfig, err
 	}
 

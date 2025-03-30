@@ -8,10 +8,12 @@ require github.com/charmbracelet/bubbletea v1.1.0
 require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/lipgloss v1.0.0
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/mitchellh/go-wordwrap v1.0.1
 )
 
 require (
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/x/ansi v0.4.2 // indirect
 	github.com/charmbracelet/x/term v0.2.0 // indirect

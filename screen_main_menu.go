@@ -35,6 +35,7 @@ func newMainMenu() mainMenuModel {
 		{text: "Random verse", command: tea.Batch(m.newRandomVerse, waitingForVerse)},
 		{text: "Read the Bible", command: func() tea.Msg { return newBookSelectionScreen() }},   // Select book -> select chapter -> read
 		{text: "Change translation", command: func() tea.Msg { return newTranslationScreen() }}, // Open a screen to choose the translation
+		{text: "Change user", command: func() tea.Msg { return newUsersMenu() }},                // Open users menu to switch current user and create new users
 		{text: "Exit BibleTUI", command: tea.Quit},
 	}
 
