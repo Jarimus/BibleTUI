@@ -10,28 +10,21 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (name, api_key, created_at, updated_at)
+INSERT INTO users (name, created_at, updated_at)
 VALUES (
-    ?,
     ?,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 )
-RETURNING id, name, api_key, created_at, updated_at
+RETURNING id, name, created_at, updated_at
 `
 
-type CreateUserParams struct {
-	Name   string
-	ApiKey string
-}
-
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Name, arg.ApiKey)
+func (q *Queries) CreateUser(ctx context.Context, name string) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser, name)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.ApiKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -58,7 +51,7 @@ func (q *Queries) DeleteUser(ctx context.Context, name string) error {
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, name, api_key, created_at, updated_at FROM users
+SELECT id, name, created_at, updated_at FROM users
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
@@ -73,7 +66,6 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.ApiKey,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -91,7 +83,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, api_key, created_at, updated_at FROM users
+SELECT id, name, created_at, updated_at FROM users
     WHERE name = ?
 `
 
@@ -101,25 +93,8 @@ func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.ApiKey,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
-}
-
-const updateApiKey = `-- name: UpdateApiKey :exec
-UPDATE users
-    SET api_key = ?
-    WHERE name = ?
-`
-
-type UpdateApiKeyParams struct {
-	ApiKey string
-	Name   string
-}
-
-func (q *Queries) UpdateApiKey(ctx context.Context, arg UpdateApiKeyParams) error {
-	_, err := q.db.ExecContext(ctx, updateApiKey, arg.ApiKey, arg.Name)
-	return err
 }

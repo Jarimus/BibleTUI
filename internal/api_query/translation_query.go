@@ -10,7 +10,7 @@ import (
 
 // Query the api for a translation.
 // The response includes data for the books in the translation: id, name and other data
-func TranslationQuery(translationID string) TranslationData {
+func TranslationQuery(translationID, apiKey string) TranslationData {
 
 	url := fmt.Sprintf("https://api.scripture.api.bible/v1/bibles/%s/books", translationID)
 
@@ -21,7 +21,7 @@ func TranslationQuery(translationID string) TranslationData {
 		return TranslationData{}
 	}
 
-	req.Header.Set("api-key", getApiKey())
+	req.Header.Set("api-key", apiKey)
 
 	// Perform the request
 	client := http.Client{}
@@ -49,7 +49,7 @@ func TranslationQuery(translationID string) TranslationData {
 
 }
 
-func AllTranslationsQuery(languageID string) BiblesData {
+func AllTranslationsQuery(languageID, apiKey string) BiblesData {
 	var url string
 	if languageID == "" {
 		url = "https://api.scripture.api.bible/v1/bibles"
@@ -63,7 +63,7 @@ func AllTranslationsQuery(languageID string) BiblesData {
 		log.Printf("Error creating request for all Bibles: %s", err)
 		return BiblesData{}
 	}
-	req.Header.Set("api-key", getApiKey())
+	req.Header.Set("api-key", apiKey)
 
 	// Perform the request
 	client := http.Client{}

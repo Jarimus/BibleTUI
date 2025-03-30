@@ -1,11 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"os"
 	"sort"
-
 )
 
 type translationJsonItems struct {
@@ -171,6 +171,7 @@ func loadSettings() (config, error) {
 	if err != nil {
 		cfg.CurrentlyReading.TranslationName = "Finnish New Testament"
 		cfg.CurrentlyReading.TranslationID = "c739534f6a23acb2-01"
+		cfg.apiKey = getApiKey()
 		return cfg, nil
 	}
 
@@ -197,4 +198,38 @@ func saveSettings() error {
 	}
 
 	return nil
+}
+
+// Initializes the database, creating a .db-file if necessary
+func initializeDB() (*sql.DB, error) {
+	if _, err := os.Stat(dbFilePath); os.IsNotExist(err) {
+		log.Printf("Database file %s does not exist. Creating...", dbFilePath)
+
+		// Create the database file
+		file, err := os.Create(dbFilePath)
+		if err != nil {
+			return nil, err
+		}
+		file.Close()
+
+		// Open the database
+		db, err := sql.Open("sqlite3", dbFilePath)
+		if err != nil {
+			return nil, err
+		}
+
+		// Apply the schema
+		if _, err := db.Exec(usersSchema); err != nil {
+			return nil, err
+		}
+		if _, err := db.Exec(translationsSchema); err != nil {
+			return nil, err
+		}
+
+		log.Println("Database initialized successfully.")
+		return db, nil
+	}
+
+	// If the database exists, open the existing database
+	return sql.Open("sqlite3", dbFilePath)
 }

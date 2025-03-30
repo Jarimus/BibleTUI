@@ -122,7 +122,7 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 	return func() tea.Msg {
 		apiCfg.CurrentlyReading.TranslationID = translationID
 		apiCfg.CurrentlyReading.TranslationName = translationName
-		apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID)
+		apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.apiKey)
 
 		err := saveSettings()
 		if err != nil {
@@ -133,7 +133,7 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 	}
 }
 
-// Return a function the returns a 
+// Return a function the returns a
 func openSelectLanguageScreen(string, string) func() tea.Msg {
 	return func() tea.Msg {
 		return newLanguagesScreen()

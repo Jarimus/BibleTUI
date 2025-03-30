@@ -26,7 +26,7 @@ type menuItem struct {
 func newLanguagesScreen() languageSelectionModel {
 
 	// Query for the languages
-	biblesData := api_query.AllTranslationsQuery("")
+	biblesData := api_query.AllTranslationsQuery("", apiCfg.apiKey)
 
 	// Get all the different languages
 	var menuItemsList = []menuItem{}
@@ -123,7 +123,7 @@ func (m languageSelectionModel) getChoiceIndex() int {
 // Queries for translations of a specific language
 // Opens a new screen to choose a translation
 func selectLanguage(languageID string) func() tea.Msg {
-	biblesOfLanguage := api_query.AllTranslationsQuery(languageID)
+	biblesOfLanguage := api_query.AllTranslationsQuery(languageID, apiCfg.apiKey)
 	return func() tea.Msg {
 		return newAddTranslationScreen(biblesOfLanguage)
 	}

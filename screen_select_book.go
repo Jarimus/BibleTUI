@@ -113,7 +113,7 @@ func (m bookSelectionModel) getChoiceIndex() int {
 func selectBook(bookID string) func() tea.Msg {
 	return func() tea.Msg {
 
-		apiCfg.CurrentlyReading.BookData = api_query.BookQuery(apiCfg.CurrentlyReading.TranslationID, bookID)
+		apiCfg.CurrentlyReading.BookData = api_query.BookQuery(apiCfg.CurrentlyReading.TranslationID, bookID, apiCfg.apiKey)
 
 		return newChapterSelectionScreen()
 	}

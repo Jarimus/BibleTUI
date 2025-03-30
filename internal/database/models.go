@@ -18,7 +18,6 @@ type Translation struct {
 type User struct {
 	ID        int64
 	Name      string
-	ApiKey    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

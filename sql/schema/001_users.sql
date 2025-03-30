@@ -1,11 +1,6 @@
--- +goose Up
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    api_key TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
-
--- +goose Down
-DROP TABLE users;

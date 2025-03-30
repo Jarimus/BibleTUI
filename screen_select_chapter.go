@@ -105,7 +105,7 @@ func (m chapterSelectionModel) getChoiceIndex() int {
 func selectChapter(chapterID string) func() tea.Msg {
 	return func() tea.Msg {
 
-		apiCfg.CurrentlyReading.ChapterData = api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, chapterID)
+		apiCfg.CurrentlyReading.ChapterData = api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, chapterID, apiCfg.apiKey)
 
 		return newBibleScreen()
 	}

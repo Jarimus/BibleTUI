@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	_ "embed"
 	"log"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
@@ -14,6 +14,17 @@ import (
 // Terminal width and height. Necessary for the viewport in reading mode when it spawns.
 var window_width int
 var window_height int
+
+// Embed the schema files
+//
+//go:embed sql/schema/001_users.sql
+var usersSchema string
+
+//go:embed sql/schema/002_translations.sql
+var translationsSchema string
+
+// Database filepath
+var dbFilePath string
 
 // Struct for the data about the current translation being read.
 type currentlyReading struct {
@@ -29,8 +40,10 @@ type config struct {
 	CurrentlyReading currentlyReading `json:"currently_reading"`
 	CurrentUser      string
 	dbQueries        *database.Queries
+	apiKey           string
 }
 
+// Api config struct to store the config file's data in memory.
 var apiCfg config
 
 func main() {
@@ -38,6 +51,7 @@ func main() {
 	println("Loading...")
 
 	var err error
+
 	// Get settings
 	apiCfg, err = loadSettings()
 	if err != nil {
@@ -45,16 +59,19 @@ func main() {
 	}
 
 	// Connect to database
-	db, err := sql.Open("sqlite3", "bibletui.db")
+	dbFilePath = "BibleTUI.db"
+
+	db, err := initializeDB()
 	if err != nil {
-		log.Fatalf("error opening connection to database: %s", err)
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	dbQueries := database.New(db)
 	apiCfg.dbQueries = dbQueries
 
 	// Initialize with the current translation
-	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID)
+	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.apiKey)
 
+	// Create a new main menu tea.Model
 	mainMenu := newMainMenu()
 
 	// Root screen holds the other models in a "stack" (slice) and displays the one at the top.
@@ -62,6 +79,6 @@ func main() {
 	p := tea.NewProgram(root)
 	_, err = p.Run()
 	if err != nil {
-		log.Fatalf("error starting the program: %s", err)
+		log.Fatalf("error starting the program: %v", err)
 	}
 }

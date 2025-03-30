@@ -137,7 +137,7 @@ func addNewTranslation(translationName, translationID string) func() tea.Msg {
 	// Set the current translation to the newly added translation
 	apiCfg.CurrentlyReading.TranslationName = translationName
 	apiCfg.CurrentlyReading.TranslationID = translationID
-	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translationID)
+	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translationID, apiCfg.apiKey)
 
 	err = saveSettings()
 	if err != nil {
