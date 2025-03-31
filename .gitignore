@@ -4,6 +4,5 @@ BibleTUI.exe
 BibleTUI
 .env
 translations.json
-my_api_key.go
 settings.json
 *.db

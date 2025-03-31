@@ -84,18 +84,24 @@ func (m usersMenuModel) Init() tea.Cmd {
 func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
+	switch msg := msg.(type) {
+	case focusInput:
+		m.textInput.Focus()
+	case newNotificationMsg:
+		m.notificationText = msg.text
+		m.notificationStyle = msg.style
+	case newErrorMsg:
+		m.errorText = msg.text
+		return m, nil
+	}
+
 	// If text input is not in focus, keyMsg navigate the menu
 	if !m.textInput.Focused() {
 		switch msg := msg.(type) {
-		case newNotificationMsg:
-			m.notificationText = msg.text
-			m.notificationStyle = msg.style
-		case string:
-			if msg == "focus" {
-				m.textInput.Focus()
-			}
 		case tea.KeyMsg:
 			switch msg.String() {
+			case tea.KeyEsc.String():
+				return m, func() tea.Msg { return goBackMsg{} }
 			case "up":
 				m.choiceIndex = (m.choiceIndex - 1 + len(m.usersList)) % len(m.usersList)
 				return m, nil
@@ -115,8 +121,6 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				cmd = m.usersList[m.choiceIndex].command(m.usersList[m.choiceIndex].name)
 				return m, cmd
-			case "focus":
-				m.textInput.Focus()
 			case tea.KeyDelete.String():
 				activeListItem := m.usersList[m.choiceIndex]
 
@@ -145,11 +149,11 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	} else { // If text input is in focus, user input controls the text input.
 		switch msg := msg.(type) {
-		case newErrorMsg:
-			m.errorText = msg.text
-			return m, nil
 		case tea.KeyMsg:
 			switch msg.String() {
+			case tea.KeyEsc.String():
+				m.textInput.Blur()
+				m.textInput.Reset()
 			case "up":
 				m.textInput.CursorStart()
 				return m, nil
@@ -173,7 +177,7 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 				}
 				m.usersList = slices.Insert(m.usersList, 0, userOption{name: userInfo.Name, command: selectUser})
-				m.notificationText = fmt.Sprintf("User created:%s", userInfo.Name)
+				m.notificationText = fmt.Sprintf("User created: %s", userInfo.Name)
 				m.textInput.Reset()
 				m.textInput.Blur()
 			}
@@ -245,7 +249,7 @@ func (m usersMenuModel) getChoiceIndex() int {
 
 func focusInputField(string) tea.Cmd {
 	return func() tea.Msg {
-		return "focus"
+		return focusInput{}
 	}
 }
 

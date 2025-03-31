@@ -68,7 +68,10 @@ func main() {
 	}
 
 	// Initialize with the current translation
-	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.ApiKey)
+	apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.ApiKey)
+	if err != nil {
+		
+	}
 
 	// Create a new main menu tea.Model
 	mainMenu := newMainMenu()

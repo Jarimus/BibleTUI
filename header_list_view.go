@@ -45,5 +45,5 @@ func getHeaderWithList(m headerListModel) string {
 
 	// join all the elements vertically
 	list := lipgloss.JoinVertical(0.5, elements...)
-	return lipgloss.PlaceHorizontal(window_width, lipgloss.Center, list)
+	return list
 }

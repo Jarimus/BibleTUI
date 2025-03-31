@@ -42,8 +42,6 @@ func (m rootScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		window_width = msg.Width
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyEsc:
-			return m.goBack()
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}

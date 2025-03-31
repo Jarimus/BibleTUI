@@ -14,6 +14,7 @@ import (
 type languageSelectionModel struct {
 	menuItemsList []menuItem
 	choiceIndex   int
+	errorText     string
 }
 
 type menuItem struct {
@@ -26,7 +27,10 @@ type menuItem struct {
 func newLanguagesScreen() languageSelectionModel {
 
 	// Query for the languages
-	biblesData := api_query.AllTranslationsQuery("", apiCfg.ApiKey)
+	biblesData, err := api_query.AllTranslationsQuery("", apiCfg.ApiKey)
+	if err != nil {
+
+	}
 
 	// Get all the different languages
 	var menuItemsList = []menuItem{}
@@ -68,8 +72,12 @@ func (m languageSelectionModel) Init() tea.Cmd {
 func (m languageSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Model handles navigating the menu
 	switch msg := msg.(type) {
+	case error:
+		logError(msg)
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEsc.String():
+			return m, func() tea.Msg { return goBackMsg{} }
 		case "up":
 			m.choiceIndex = (m.choiceIndex - 1 + len(m.menuItemsList)) % len(m.menuItemsList)
 			return m, nil
@@ -94,7 +102,11 @@ func (m languageSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m languageSelectionModel) View() string {
-	return getHeaderWithList(m)
+
+	errorText := styles.RedText.Render(m.errorText)
+	errorText = lipgloss.PlaceHorizontal(window_width, 0.5, errorText)
+
+	return lipgloss.JoinVertical(0, getHeaderWithList(m), errorText)
 }
 
 // Returns the header of the model as a string.
@@ -123,7 +135,12 @@ func (m languageSelectionModel) getChoiceIndex() int {
 // Queries for translations of a specific language
 // Opens a new screen to choose a translation
 func selectLanguage(languageID string) func() tea.Msg {
-	biblesOfLanguage := api_query.AllTranslationsQuery(languageID, apiCfg.ApiKey)
+	biblesOfLanguage, err := api_query.AllTranslationsQuery(languageID, apiCfg.ApiKey)
+	if err != nil {
+		return func() tea.Msg {
+			return err
+		}
+	}
 	return func() tea.Msg {
 		return newAddTranslationScreen(biblesOfLanguage)
 	}

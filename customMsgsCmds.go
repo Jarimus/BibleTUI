@@ -13,3 +13,5 @@ type newNotificationMsg struct {
 type newErrorMsg struct {
 	text string
 }
+
+type focusInput struct{}

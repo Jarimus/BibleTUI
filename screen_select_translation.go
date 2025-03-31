@@ -69,8 +69,12 @@ func (m translationSelectionModel) Init() tea.Cmd {
 func (m translationSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Model handles navigating the menu
 	switch msg := msg.(type) {
+	case error:
+		m.errorText = msg.Error()
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEsc.String():
+			return m, func() tea.Msg { return goBackMsg{} }
 		case "up", "left":
 			m.choiceIndex = (m.choiceIndex - 1 + len(m.menuItems)) % len(m.menuItems)
 			return m, nil
@@ -148,11 +152,15 @@ func (m translationSelectionModel) getChoiceIndex() int {
 // Translation data includes, among others, the names and IDs for the books in the translation
 func selectTranslation(translationName, translationID string) func() tea.Msg {
 	return func() tea.Msg {
+		var err error
 		apiCfg.CurrentlyReading.TranslationID = translationID
 		apiCfg.CurrentlyReading.TranslationName = translationName
-		apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.ApiKey)
+		apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.ApiKey)
+		if err != nil {
+			return err
+		}
 
-		err := saveSettings()
+		err = saveSettings()
 		if err != nil {
 			return err
 		}

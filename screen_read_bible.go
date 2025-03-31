@@ -101,9 +101,11 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.SetContent(formatBibleText(m.bibleText, m.viewport.Width))
 		m.viewport.YOffset = 0
 
-	// Pressing left and right moves between the chapters
+	// Pressing left and right moves between the chapters. Esc exits the reader
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEsc.String():
+			return m, func() tea.Msg { return goBackMsg{} }
 		case tea.KeyLeft.String():
 			cmds = append(cmds, toPreviousChapter)
 		case tea.KeyRight.String():

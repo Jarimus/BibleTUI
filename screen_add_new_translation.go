@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
@@ -70,6 +72,8 @@ func (m addTranslationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEsc.String():
+				return m, func() tea.Msg { return goBackMsg{} }
 		case "up":
 			m.choiceIndex = (m.choiceIndex - 1 + len(m.menuItemsList)) % len(m.menuItemsList)
 			return m, nil
@@ -136,7 +140,12 @@ func addNewTranslation(translationName, translationID string) func() tea.Msg {
 	// Set the current translation to the newly added translation
 	apiCfg.CurrentlyReading.TranslationName = translation.Name
 	apiCfg.CurrentlyReading.TranslationID = translation.ApiID
-	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translation.ApiID, apiCfg.ApiKey)
+	apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(translation.ApiID, apiCfg.ApiKey)
+	if err != nil {
+		msg := styles.RedText.Render("Unable to access the api. Enter a valid API Key to access the Bible translations.")
+		log.Println(msg)
+		time.Sleep(1500 * time.Millisecond)
+	}
 
 	err = saveSettings()
 	if err != nil {

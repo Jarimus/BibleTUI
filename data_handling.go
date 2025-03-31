@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/Jarimus/BibleTUI/internal/database"
+	"github.com/Jarimus/BibleTUI/internal/styles"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 const settingsFilePath = "settings.json"
+const logFilePath = "error_log.txt"
 
 // Adds the chosen translation to the database for the active user.
 // Also sets the current translation as the newly added translation.
@@ -49,11 +51,18 @@ func loadSettings() error {
 	fileData, err := os.ReadFile(settingsFilePath)
 
 	if err != nil {
+
+		log.Print("No settings file found. ")
+		time.Sleep(1000 * time.Millisecond)
+
 		apiCfg.CurrentlyReading.TranslationName = "No translation"
 		apiCfg.CurrentlyReading.TranslationID = ""
-		apiCfg.ApiKey = getApiKey()
+		apiCfg.ApiKey = styles.RedText.Render("Enter your API Key to access the Bible translations!")
 		apiCfg.CurrentUser = "Default"
 		apiCfg.CurrentUserID = 0
+
+		log.Print("Creating new settings.json...\n")
+		time.Sleep(1000 * time.Millisecond)
 
 		saveSettings()
 
@@ -90,7 +99,7 @@ func initializeDB() error {
 	// If the database file does not exist, create a new one.
 	if _, err := os.Stat(dbFilePath); os.IsNotExist(err) {
 		log.Printf("Database file %s does not exist. Creating...", dbFilePath)
-		time.Sleep(1 * time.Second)
+		time.Sleep(1500 * time.Millisecond)
 
 		// Create the database file
 		file, err := os.Create(dbFilePath)
@@ -114,7 +123,7 @@ func initializeDB() error {
 		}
 
 		log.Println("Database initialized successfully!")
-		time.Sleep(1 * time.Second)
+		time.Sleep(1500 * time.Millisecond)
 
 		dbQueries := database.New(db)
 		apiCfg.dbQueries = dbQueries
@@ -138,4 +147,32 @@ func initializeDB() error {
 	apiCfg.dbQueries = dbQueries
 
 	return nil
+}
+
+func logError(err error) {
+
+	var file *os.File
+
+	errorText := err.Error()
+
+	if _, err = os.Stat(logFilePath); os.IsNotExist(err) {
+
+		// Create the log file
+		file, err := os.Create(logFilePath)
+		if err != nil {
+			return
+		}
+		file.Close()
+	}
+
+	file, err = os.Open(logFilePath)
+	if err != nil {
+		return
+	}
+
+	_, errW := file.Write([]byte(errorText))
+	if errW != nil {
+		log.Fatalf("error writing errors to log file: %s", err)
+	}
+
 }
