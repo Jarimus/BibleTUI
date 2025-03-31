@@ -66,7 +66,6 @@ func (m rootScreenModel) View() string {
 	return m.models[len(m.models)-1].View() // + fmt.Sprintf("\n\nModel count: %d", len(m.models))
 }
 
-type goBackMsg struct{}
 
 // When the root receives a goBackMsg structm goBack function is called.
 // The function removes the top model (screen) from the slice of models, effectively moving the interface to the next model in the stack.

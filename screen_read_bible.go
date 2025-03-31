@@ -146,7 +146,7 @@ func toPreviousChapter() tea.Msg {
 	if apiCfg.CurrentlyReading.ChapterData.Data.Previous.ID == "" {
 		return nil
 	}
-	chapterData := api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.CurrentlyReading.ChapterData.Data.Previous.ID, apiCfg.apiKey)
+	chapterData := api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.CurrentlyReading.ChapterData.Data.Previous.ID, apiCfg.ApiKey)
 	return chapterData
 }
 
@@ -155,7 +155,7 @@ func toNextChapter() tea.Msg {
 	if apiCfg.CurrentlyReading.ChapterData.Data.Next.ID == "" {
 		return nil
 	}
-	chapterData := api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.CurrentlyReading.ChapterData.Data.Next.ID, apiCfg.apiKey)
+	chapterData := api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.CurrentlyReading.ChapterData.Data.Next.ID, apiCfg.ApiKey)
 	return chapterData
 }
 

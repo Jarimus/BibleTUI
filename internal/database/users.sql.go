@@ -52,6 +52,7 @@ func (q *Queries) DeleteUser(ctx context.Context, name string) error {
 
 const getAllUsers = `-- name: GetAllUsers :many
 SELECT id, name, created_at, updated_at FROM users
+    ORDER BY name
 `
 
 func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {

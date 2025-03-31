@@ -36,7 +36,7 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 			}
 		}
 		if !found {
-			// Adds the description to the 
+			// Adds the description to the
 			var name string
 			if slices.Contains([]string{"", "common"}, strings.ToLower(translation.Description)) {
 				name = translation.Name
@@ -125,19 +125,18 @@ func (m addTranslationModel) getChoiceIndex() int {
 // Also sets the new translation as the current translation.
 func addNewTranslation(translationName, translationID string) func() tea.Msg {
 
-	// add the new translation to the list of translations in the file
-	err := addTranslationToFile(translationName, translationID)
+	// Add the translation to the database
+	translation, err := addTranslationToDatabase(translationName, translationID)
 	if err != nil {
-		errorF := func() tea.Msg {
+		return func() tea.Msg {
 			return err
 		}
-		return errorF
 	}
 
 	// Set the current translation to the newly added translation
-	apiCfg.CurrentlyReading.TranslationName = translationName
-	apiCfg.CurrentlyReading.TranslationID = translationID
-	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translationID, apiCfg.apiKey)
+	apiCfg.CurrentlyReading.TranslationName = translation.Name
+	apiCfg.CurrentlyReading.TranslationID = translation.ApiID
+	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translation.ApiID, apiCfg.ApiKey)
 
 	err = saveSettings()
 	if err != nil {

@@ -1,187 +1,71 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
 	"os"
-	"sort"
+	"time"
+
+	"github.com/Jarimus/BibleTUI/internal/database"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-type translationJsonItems struct {
-	Name string `json:"name"`
-	Id   string `json:"id"`
-}
-
-const translationsFilePath = "translations.json"
 const settingsFilePath = "settings.json"
 
-// Look for the translation json-file.
-// If not found, create a set of basic set of items for the translations menu.
-func loadTranslationsFromFile() ([]translationMenuItem, error) {
+// Adds the chosen translation to the database for the active user.
+// Also sets the current translation as the newly added translation.
+func addTranslationToDatabase(translationName, TranslationId string) (database.Translation, tea.Msg) {
 
-	data, err := os.ReadFile(translationsFilePath)
+	// Create a translation entry in the database
+	params := database.CreateTranslationParams{
+		Name:   translationName,
+		ApiID:  TranslationId,
+		UserID: apiCfg.CurrentUserID,
+	}
+	translation, err := apiCfg.dbQueries.CreateTranslation(context.Background(), params)
 	if err != nil {
-
-		translations := []translationJsonItems{
-			{
-				Name: "Simplified Chinese",
-				Id:   "7ea794434e9ea7ee-01",
-			},
-			{
-				Name: "Finnish New Testament",
-				Id:   "c739534f6a23acb2-01",
-			},
-			{
-				Name: "American Standard",
-				Id:   "685d1470fe4d5c3b-01",
-			},
-			{
-				Name: "King James",
-				Id:   "de4e12af7f28f599-01",
-			},
-			{
-				Name: "World English Bible",
-				Id:   "9879dbb7cfe39e4d-01",
-			},
-			{
-				Name: "Open Hebrew Living New Testament",
-				Id:   "a8a97eebae3c98e4-01",
-			},
-			{
-				Name: "Brenton Greek Septuagint",
-				Id:   "c114c33098c4fef1-01",
-			},
-			{
-				Name: "Solid Rock Greek New Testament",
-				Id:   "47f396bad37936f0-01",
-			},
-		}
-		sort.Slice(translations, func(i, j int) bool {
-			return translations[i].Name < translations[j].Name
-		})
-
-		marshalledTranslation, err := json.MarshalIndent(translations, "", "  ")
-		if err != nil {
-			return nil, err
-		}
-
-		err = os.WriteFile(translationsFilePath, marshalledTranslation, 0600)
-		if err != nil {
-			return nil, err
-		}
-
-		var resultVals []translationMenuItem
-
-		for _, item := range translations {
-			resultVals = append(resultVals, translationMenuItem{
-				name:    item.Name,
-				id:      item.Id,
-				command: selectTranslation,
-			})
-		}
-
-		return resultVals, nil
+		return database.Translation{}, err
 	}
 
-	var translations []translationJsonItems
-	err = json.Unmarshal(data, &translations)
-	if err != nil {
-		log.Printf("error unmarshaling translations data from file: %s", err)
-	}
-
-	sort.Slice(translations, func(i, j int) bool {
-		return translations[i].Name < translations[j].Name
-	})
-
-	var resultVals []translationMenuItem
-
-	for _, item := range translations {
-		resultVals = append(resultVals, translationMenuItem{
-			name:    item.Name,
-			id:      item.Id,
-			command: selectTranslation,
-		})
-	}
-
-	return resultVals, nil
+	return translation, nil
 }
 
-// Loads the current list of translation from a file, adds the new translation, and writes the new list to the file.
-func addTranslationToFile(translationName, translationId string) error {
+func loadTranslationsForUser() ([]database.Translation, error) {
 
-	translationMenuItems, err := loadTranslationsFromFile()
+	translations, err := apiCfg.dbQueries.GetTranslationsForUser(context.Background(), apiCfg.CurrentUserID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var translations []translationJsonItems
-	for _, translation := range translationMenuItems {
-		translations = append(translations, translationJsonItems{
-			Name: translation.name,
-			Id:   translation.id,
-		})
-	}
-	translations = append(translations, translationJsonItems{
-		Name: translationName,
-		Id:   translationId,
-	})
-
-	dataMarshalled, err := json.MarshalIndent(translations, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(translationsFilePath, dataMarshalled, 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Saves the list of translations (open in the current screen) to a file.
-func saveTranslationsToFile(translationsMenuItems []translationMenuItem) error {
-	var translations []translationJsonItems
-	for _, translation := range translationsMenuItems {
-		translations = append(translations, translationJsonItems{
-			Name: translation.name,
-			Id:   translation.id,
-		})
-	}
-	dataMarshalled, err := json.MarshalIndent(translations, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(translationsFilePath, dataMarshalled, 0600)
-	if err != nil {
-		return err
-	}
-	return nil
+	return translations, nil
 }
 
 // Loads and return the apiCfg from a json-file.
 // If file is not found, returns an empty config file with a default Bible translation as the current translation.
-func loadSettings() (config, error) {
-
-	var cfg config
+func loadSettings() error {
 
 	fileData, err := os.ReadFile(settingsFilePath)
+
 	if err != nil {
-		cfg.CurrentlyReading.TranslationName = "Finnish New Testament"
-		cfg.CurrentlyReading.TranslationID = "c739534f6a23acb2-01"
-		cfg.apiKey = getApiKey()
-		return cfg, nil
+		apiCfg.CurrentlyReading.TranslationName = "No translation"
+		apiCfg.CurrentlyReading.TranslationID = ""
+		apiCfg.ApiKey = getApiKey()
+		apiCfg.CurrentUser = "Default"
+		apiCfg.CurrentUserID = 0
+
+		saveSettings()
+
+		return nil
 	}
 
-	err = json.Unmarshal(fileData, &cfg)
+	err = json.Unmarshal(fileData, &apiCfg)
 	if err != nil {
-		var emptyConfig config
-		return emptyConfig, err
+		return err
 	}
 
-	return cfg, nil
+	return nil
 }
 
 // Saves the apiCfg to a json-file.
@@ -201,35 +85,57 @@ func saveSettings() error {
 }
 
 // Initializes the database, creating a .db-file if necessary
-func initializeDB() (*sql.DB, error) {
+func initializeDB() error {
+
+	// If the database file does not exist, create a new one.
 	if _, err := os.Stat(dbFilePath); os.IsNotExist(err) {
 		log.Printf("Database file %s does not exist. Creating...", dbFilePath)
+		time.Sleep(1 * time.Second)
 
 		// Create the database file
 		file, err := os.Create(dbFilePath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		file.Close()
 
 		// Open the database
 		db, err := sql.Open("sqlite3", dbFilePath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		// Apply the schema
 		if _, err := db.Exec(usersSchema); err != nil {
-			return nil, err
+			return err
 		}
 		if _, err := db.Exec(translationsSchema); err != nil {
-			return nil, err
+			return err
 		}
 
-		log.Println("Database initialized successfully.")
-		return db, nil
+		log.Println("Database initialized successfully!")
+		time.Sleep(1 * time.Second)
+
+		dbQueries := database.New(db)
+		apiCfg.dbQueries = dbQueries
+
+		// Create a 'Default' user
+		if _, err := apiCfg.dbQueries.CreateUser(context.Background(), "Default"); err != nil {
+			return err
+		}
+
+		return nil
+
 	}
 
-	// If the database exists, open the existing database
-	return sql.Open("sqlite3", dbFilePath)
+	// If the database exists, open the existing database and store the connection in the database
+	db, err := sql.Open("sqlite3", dbFilePath)
+	if err != nil {
+		return err
+	}
+
+	dbQueries := database.New(db)
+	apiCfg.dbQueries = dbQueries
+
+	return nil
 }

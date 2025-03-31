@@ -8,7 +8,8 @@ VALUES (
 RETURNING *;
 
 -- name: GetAllUsers :many
-SELECT * FROM users;
+SELECT * FROM users
+    ORDER BY name;
 
 -- name: GetUser :one
 SELECT * FROM users

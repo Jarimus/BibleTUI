@@ -10,7 +10,7 @@ import (
 )
 
 const createTranslation = `-- name: CreateTranslation :one
-INSERT INTO translations (name, api_id, user_id)
+INSERT INTO translations (name, user_id, api_id)
 VALUES(
     ?,
     ?,
@@ -21,12 +21,12 @@ RETURNING id, name, api_id, user_id
 
 type CreateTranslationParams struct {
 	Name   string
-	ApiID  string
 	UserID int64
+	ApiID  string
 }
 
 func (q *Queries) CreateTranslation(ctx context.Context, arg CreateTranslationParams) (Translation, error) {
-	row := q.db.QueryRowContext(ctx, createTranslation, arg.Name, arg.ApiID, arg.UserID)
+	row := q.db.QueryRowContext(ctx, createTranslation, arg.Name, arg.UserID, arg.ApiID)
 	var i Translation
 	err := row.Scan(
 		&i.ID,
@@ -35,6 +35,21 @@ func (q *Queries) CreateTranslation(ctx context.Context, arg CreateTranslationPa
 		&i.UserID,
 	)
 	return i, err
+}
+
+const deleteTranslationForUser = `-- name: DeleteTranslationForUser :exec
+DELETE FROM translations
+    WHERE user_id = ? AND api_id = ?
+`
+
+type DeleteTranslationForUserParams struct {
+	UserID int64
+	ApiID  string
+}
+
+func (q *Queries) DeleteTranslationForUser(ctx context.Context, arg DeleteTranslationForUserParams) error {
+	_, err := q.db.ExecContext(ctx, deleteTranslationForUser, arg.UserID, arg.ApiID)
+	return err
 }
 
 const getTranslationsForUser = `-- name: GetTranslationsForUser :many

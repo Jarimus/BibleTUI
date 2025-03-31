@@ -97,10 +97,19 @@ func (m mainMenuModel) headerView() string {
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
 
+	// Display the active user above the menu
+	user := fmt.Sprintf("Active user: %s", apiCfg.CurrentUser)
+	user = styles.InfoText.Render(user)
+
+	// Display api-key
+	apiKey := fmt.Sprintf("Active api-key: %s", apiCfg.ApiKey)
+	apiKey = styles.InfoText.Render(apiKey)
+
+	// Display the current translation above the menu
 	translation := fmt.Sprintf("Current translation: %s", apiCfg.CurrentlyReading.TranslationName)
 	translation = styles.InfoText.Render(translation)
 
-	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar, translation)
+	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar, user, apiKey, translation)
 }
 
 // Returns the name of the menu item at index as a string.

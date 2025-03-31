@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"slices"
 	"strings"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
+	"github.com/Jarimus/BibleTUI/internal/database"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -15,6 +17,7 @@ import (
 type translationSelectionModel struct {
 	menuItems   []translationMenuItem
 	choiceIndex int
+	errorText   string
 }
 
 type translationMenuItem struct {
@@ -26,10 +29,23 @@ type translationMenuItem struct {
 // return a new tea.Model for a menu to select a translation to use.
 func newTranslationScreen() translationSelectionModel {
 
-	// Load list of translations from a file
-	translations, err := loadTranslationsFromFile()
+	// Load list of translations from database for the active user.
+	translationsDB, err := loadTranslationsForUser()
 	if err != nil {
-		log.Printf("error loading translations from a file: %s", err)
+		if strings.Contains(err.Error(), "no rows in result set") {
+		} else {
+			log.Fatalf("error loading translations from database: %s", err)
+		}
+	}
+
+	var translations []translationMenuItem
+
+	for _, item := range translationsDB {
+		translations = append(translations, translationMenuItem{
+			name:    item.Name,
+			id:      item.ApiID,
+			command: selectTranslation,
+		})
 	}
 
 	translations = append(translations, translationMenuItem{
@@ -72,12 +88,20 @@ func (m translationSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.menuItems[m.choiceIndex].command(name, id)
 		case tea.KeyDelete.String():
 			if m.menuItems[m.choiceIndex].name != "Add new translation" && m.menuItems[m.choiceIndex].name != "Back" {
-				m.menuItems = slices.Delete(m.menuItems, m.choiceIndex, m.choiceIndex+1)
-				translations := m.menuItems[:len(m.menuItems)-2]
-				err := saveTranslationsToFile(translations)
-				if err != nil {
-					log.Fatalf("error saving translation: %s", err)
+
+				// Delete the translation for the user from the database.
+				params := database.DeleteTranslationForUserParams{
+					UserID: apiCfg.CurrentUserID,
+					ApiID:  m.menuItems[m.choiceIndex].id,
 				}
+				err := apiCfg.dbQueries.DeleteTranslationForUser(context.Background(), params)
+				if err != nil {
+					m.errorText = err.Error()
+					return m, nil
+				}
+
+				// Delete the menu item from the slice.
+				m.menuItems = slices.Delete(m.menuItems, m.choiceIndex, m.choiceIndex+1)
 			}
 		}
 	}
@@ -86,11 +110,15 @@ func (m translationSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m translationSelectionModel) View() string {
 
+	errorText := m.errorText
+	errorText = styles.RedText.Render(errorText)
+	errorText = lipgloss.PlaceHorizontal(window_width, 0.5, errorText)
+
 	helpText := "Press 'Del' to remove a translation from the list."
-	helpText = lipgloss.Place(window_width, window_height-lipgloss.Height(getHeaderWithList(m))-1, 0.5, 1, helpText)
+	helpText = lipgloss.PlaceHorizontal(window_width, 0.5, helpText)
 	helpText = styles.InfoText.Render(helpText)
 
-	return lipgloss.JoinVertical(0, getHeaderWithList(m), helpText)
+	return lipgloss.JoinVertical(0, getHeaderWithList(m), errorText, helpText)
 }
 
 // Returns the header of the model as a string.
@@ -122,7 +150,7 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 	return func() tea.Msg {
 		apiCfg.CurrentlyReading.TranslationID = translationID
 		apiCfg.CurrentlyReading.TranslationName = translationName
-		apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.apiKey)
+		apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.ApiKey)
 
 		err := saveSettings()
 		if err != nil {
@@ -133,7 +161,7 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 	}
 }
 
-// Return a function the returns a
+// Return a function the returns a tea.Model screen to select a language in.
 func openSelectLanguageScreen(string, string) func() tea.Msg {
 	return func() tea.Msg {
 		return newLanguagesScreen()

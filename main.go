@@ -37,10 +37,11 @@ type currentlyReading struct {
 
 // A config struct for current translation, user, database queries
 type config struct {
-	CurrentlyReading currentlyReading `json:"currently_reading"`
-	CurrentUser      string
+	CurrentUser      string `json:"current_user"`
+	CurrentUserID    int64  `json:"current_user_id"`
+	ApiKey           string `json:"api_key"`
 	dbQueries        *database.Queries
-	apiKey           string
+	CurrentlyReading currentlyReading `json:"currently_reading"`
 }
 
 // Api config struct to store the config file's data in memory.
@@ -52,8 +53,8 @@ func main() {
 
 	var err error
 
-	// Get settings
-	apiCfg, err = loadSettings()
+	// Load settings
+	err = loadSettings()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,15 +62,13 @@ func main() {
 	// Connect to database
 	dbFilePath = "BibleTUI.db"
 
-	db, err := initializeDB()
+	err = initializeDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	dbQueries := database.New(db)
-	apiCfg.dbQueries = dbQueries
 
 	// Initialize with the current translation
-	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.apiKey)
+	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.ApiKey)
 
 	// Create a new main menu tea.Model
 	mainMenu := newMainMenu()
