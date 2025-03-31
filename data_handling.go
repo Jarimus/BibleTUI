@@ -59,7 +59,7 @@ func loadSettings() error {
 		apiCfg.CurrentlyReading.TranslationID = ""
 		apiCfg.ApiKey = styles.RedText.Render("Enter your API Key to access the Bible translations!")
 		apiCfg.CurrentUser = "Default"
-		apiCfg.CurrentUserID = 0
+		apiCfg.CurrentUserID = int64(1)
 
 		log.Print("Creating new settings.json...\n")
 		time.Sleep(1000 * time.Millisecond)
