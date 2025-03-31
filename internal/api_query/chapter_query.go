@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func ChapterQuery(translationID, chapterID string) ChapterData {
+func ChapterQuery(translationID, chapterID, apiKey string) ChapterData {
 	// Key data in this query: content of the current chapter, IDs for the previous and next chapter
 
 	url := fmt.Sprintf("https://api.scripture.api.bible/v1/bibles/%s/chapters/%s?content-type=text&include-notes=false&include-titles=true&include-chapter-numbers=false&include-verse-numbers=true&include-verse-spans=false",
@@ -23,7 +23,7 @@ func ChapterQuery(translationID, chapterID string) ChapterData {
 	}
 
 	// If you do not have an api-key, you have to make an account at https://scripture.api.bible/ to get one.
-	req.Header.Set("api-key", getApiKey())
+	req.Header.Set("api-key", apiKey)
 
 	// Perform the request
 	client := http.Client{}

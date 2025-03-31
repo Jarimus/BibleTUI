@@ -49,6 +49,8 @@ func (m chapterSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEsc.String():
+			return m, func() tea.Msg { return goBackMsg{} }
 		case "up":
 			m.choiceIndex = (m.choiceIndex - 1 + len(m.menuItems)) % len(m.menuItems)
 			return m, nil
@@ -105,7 +107,7 @@ func (m chapterSelectionModel) getChoiceIndex() int {
 func selectChapter(chapterID string) func() tea.Msg {
 	return func() tea.Msg {
 
-		apiCfg.CurrentlyReading.ChapterData = api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, chapterID)
+		apiCfg.CurrentlyReading.ChapterData = api_query.ChapterQuery(apiCfg.CurrentlyReading.TranslationID, chapterID, apiCfg.ApiKey)
 
 		return newBibleScreen()
 	}

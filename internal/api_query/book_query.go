@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func BookQuery(translationID, bookID string) BookData {
+func BookQuery(translationID, bookID, apiKey string) BookData {
 	// Key data in this query: names and IDs for chapters of the chosen book
 
 	url := fmt.Sprintf("https://api.scripture.api.bible/v1/bibles/%s/books/%s/chapters", translationID, bookID)
@@ -20,7 +20,7 @@ func BookQuery(translationID, bookID string) BookData {
 		return BookData{}
 	}
 
-	req.Header.Set("api-key", getApiKey())
+	req.Header.Set("api-key", apiKey)
 
 	// Perform the request
 	client := http.Client{}

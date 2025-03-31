@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
@@ -36,7 +38,7 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 			}
 		}
 		if !found {
-			// Adds the description to the 
+			// Adds the description to the
 			var name string
 			if slices.Contains([]string{"", "common"}, strings.ToLower(translation.Description)) {
 				name = translation.Name
@@ -70,6 +72,8 @@ func (m addTranslationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEsc.String():
+			return m, func() tea.Msg { return goBackMsg{} }
 		case "up":
 			m.choiceIndex = (m.choiceIndex - 1 + len(m.menuItemsList)) % len(m.menuItemsList)
 			return m, nil
@@ -125,19 +129,23 @@ func (m addTranslationModel) getChoiceIndex() int {
 // Also sets the new translation as the current translation.
 func addNewTranslation(translationName, translationID string) func() tea.Msg {
 
-	// add the new translation to the list of translations in the file
-	err := addTranslationToFile(translationName, translationID)
+	// Add the translation to the database
+	translation, err := addTranslationToDatabase(translationName, translationID)
 	if err != nil {
-		errorF := func() tea.Msg {
+		return func() tea.Msg {
 			return err
 		}
-		return errorF
 	}
 
 	// Set the current translation to the newly added translation
-	apiCfg.CurrentlyReading.TranslationName = translationName
-	apiCfg.CurrentlyReading.TranslationID = translationID
-	apiCfg.CurrentlyReading.TranslationData = api_query.TranslationQuery(translationID)
+	apiCfg.CurrentlyReading.TranslationName = translation.Name
+	apiCfg.CurrentlyReading.TranslationID = translation.ApiID
+	apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(translation.ApiID, apiCfg.ApiKey)
+	if err != nil {
+		msg := styles.RedText.Render("Unable to access the api. Enter a valid API Key to access the Bible translations.")
+		log.Println(msg)
+		time.Sleep(1500 * time.Millisecond)
+	}
 
 	err = saveSettings()
 	if err != nil {
