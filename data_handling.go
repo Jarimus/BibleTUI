@@ -64,7 +64,10 @@ func loadSettings() error {
 		log.Print("Creating new settings.json...\n")
 		time.Sleep(1000 * time.Millisecond)
 
-		saveSettings()
+		err = saveSettings()
+		if err != nil {
+			return err
+		}
 
 		return nil
 	}
@@ -106,7 +109,10 @@ func initializeDB() error {
 		if err != nil {
 			return err
 		}
-		file.Close()
+		err = file.Close()
+		if err != nil {
+			return err
+		}
 
 		// Open the database
 		db, err := sql.Open("sqlite3", dbFilePath)
@@ -160,13 +166,19 @@ func logError(err error) {
 		// Create the log file
 		file, err := os.Create(logFilePath)
 		if err != nil {
+			logError(err)
 			return
 		}
-		file.Close()
+		err = file.Close()
+		if err != nil {
+			logError(err)
+			return
+		}
 	}
 
 	file, err = os.Open(logFilePath)
 	if err != nil {
+		logError(err)
 		return
 	}
 
@@ -174,5 +186,4 @@ func logError(err error) {
 	if errW != nil {
 		log.Fatalf("error writing errors to log file: %s", err)
 	}
-
 }

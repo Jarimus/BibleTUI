@@ -266,7 +266,10 @@ func selectUser(user string) tea.Cmd {
 		}
 		apiCfg.CurrentUser = user.Name
 		apiCfg.CurrentUserID = user.ID
-		saveSettings()
+		err = saveSettings()
+		if err != nil {
+			return err
+		}
 		return newNotificationMsg{
 			text:  fmt.Sprintf("Current user set to %s.", apiCfg.CurrentUser),
 			style: styles.PurpleText}

@@ -117,7 +117,11 @@ func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "enter":
 				newApiKey := m.textInput.Value()
 				if err := api_query.TestConnection(newApiKey); err != nil {
-					m.randomVerse = styles.RedText.Render(wordwrap.WrapString(err.Error(), uint(window_width)))
+					if window_width < 0 {
+						m.randomVerse = styles.RedText.Render(err.Error())
+					} else {
+						m.randomVerse = styles.RedText.Render(wordwrap.WrapString(err.Error(), uint(window_width)))
+					}
 				} else {
 					apiCfg.ApiKey = m.textInput.Value()
 					err = saveSettings()
@@ -227,5 +231,9 @@ func (m *mainMenuModel) applyRandomVerse(query api_query.RandomQuery) {
 		line,
 	)
 	s = strings.ReplaceAll(s, "\n\n", "\n")
-	m.randomVerse = wordwrap.WrapString(s, uint(window_width))
+	if window_width < 0 {
+		m.randomVerse = s
+	} else {
+		m.randomVerse = wordwrap.WrapString(s, uint(window_width))
+	}
 }
