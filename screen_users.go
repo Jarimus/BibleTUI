@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"slices"
@@ -268,8 +269,25 @@ func selectUser(user string) tea.Cmd {
 				}
 			}
 		}
+
 		apiCfg.CurrentUser = user.Name
 		apiCfg.CurrentUserID = user.ID
+
+		// Set the current translation to the first translation the user has on their list.
+		userTranslations, err := apiCfg.dbQueries.GetTranslationsForUser(context.Background(), user.ID)
+		if err == sql.ErrNoRows {
+			apiCfg.CurrentlyReading.TranslationID = ""
+			apiCfg.CurrentlyReading.TranslationName = "No translation"
+		} else if err != nil {
+			return newErrorMsg{
+				text: err.Error(),
+			}
+		} else {
+			firstTranslation := userTranslations[0]
+			apiCfg.CurrentlyReading.TranslationID = firstTranslation.ApiID
+			apiCfg.CurrentlyReading.TranslationName = firstTranslation.Name
+		}
+
 		err = saveSettings()
 		if err != nil {
 			return err
