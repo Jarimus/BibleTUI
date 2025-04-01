@@ -2,5 +2,5 @@ debug.txt
 BibleTUI.exe
 BibleTUI
 .env
-settings.json
+*.json
 *.db

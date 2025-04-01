@@ -7,7 +7,7 @@ import (
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	"github.com/Jarimus/BibleTUI/internal/database"
 	tea "github.com/charmbracelet/bubbletea"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 // Global variables:

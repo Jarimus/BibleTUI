@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -52,7 +53,7 @@ func loadSettings() error {
 
 	if err != nil {
 
-		log.Print("No settings file found. ")
+		println("No settings file found. ")
 		time.Sleep(1000 * time.Millisecond)
 
 		apiCfg.CurrentlyReading.TranslationName = "No translation"
@@ -61,13 +62,14 @@ func loadSettings() error {
 		apiCfg.CurrentUser = "Default"
 		apiCfg.CurrentUserID = int64(1)
 
-		log.Print("Creating new settings.json...\n")
-		time.Sleep(1000 * time.Millisecond)
+		println("Creating new settings.json...")
 
 		err = saveSettings()
 		if err != nil {
 			return err
 		}
+
+		time.Sleep(1000 * time.Millisecond)
 
 		return nil
 	}
@@ -101,7 +103,7 @@ func initializeDB() error {
 
 	// If the database file does not exist, create a new one.
 	if _, err := os.Stat(dbFilePath); os.IsNotExist(err) {
-		log.Printf("Database file %s does not exist. Creating...", dbFilePath)
+		fmt.Printf("Database file %s does not exist. Creating...\n", dbFilePath)
 		time.Sleep(1500 * time.Millisecond)
 
 		// Create the database file
@@ -115,7 +117,7 @@ func initializeDB() error {
 		}
 
 		// Open the database
-		db, err := sql.Open("sqlite3", dbFilePath)
+		db, err := sql.Open("sqlite", dbFilePath)
 		if err != nil {
 			return err
 		}
@@ -128,7 +130,7 @@ func initializeDB() error {
 			return err
 		}
 
-		log.Println("Database initialized successfully!")
+		println("Database initialized successfully!")
 		time.Sleep(1500 * time.Millisecond)
 
 		dbQueries := database.New(db)
@@ -144,7 +146,7 @@ func initializeDB() error {
 	}
 
 	// If the database exists, open the existing database and store the connection in the database
-	db, err := sql.Open("sqlite3", dbFilePath)
+	db, err := sql.Open("sqlite", dbFilePath)
 	if err != nil {
 		return err
 	}

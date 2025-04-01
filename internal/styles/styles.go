@@ -4,10 +4,10 @@ import "github.com/charmbracelet/lipgloss"
 
 // Styles for the TUI
 
-const GreenColor = lipgloss.Color("#00ff00")
-const RedColor = lipgloss.Color("#ff5555")
-const BlueColor = lipgloss.Color("#0000ff")
-const YellowColor = lipgloss.Color("#ffff00")
+const GreenColor = lipgloss.Color("#00FF00")
+const RedColor = lipgloss.Color("#FF5555")
+const BlueColor = lipgloss.Color("#8888FF")
+const YellowColor = lipgloss.Color("#FFFF00")
 const GreyColor = lipgloss.Color("#999999")
 const PurpleColor = lipgloss.Color("#A020F0")
 

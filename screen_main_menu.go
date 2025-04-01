@@ -55,6 +55,7 @@ func newMainMenu() mainMenuModel {
 	m.textInput.TextStyle = styles.BlueText
 	m.textInput.PromptStyle = styles.BlueText
 	m.textInput.PlaceholderStyle = styles.BlueText
+	m.textInput.Cursor.Style = styles.BlueText
 	m.textInput.Prompt = "> "
 	m.textInput.Placeholder = "Enter your API key"
 
