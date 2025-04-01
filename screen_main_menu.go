@@ -55,7 +55,6 @@ func newMainMenu() mainMenuModel {
 	m.textInput.TextStyle = styles.BlueText
 	m.textInput.PromptStyle = styles.BlueText
 	m.textInput.PlaceholderStyle = styles.BlueText
-	m.textInput.Cursor.Style = styles.BlueText
 	m.textInput.Prompt = "> "
 	m.textInput.Placeholder = "Enter your API key"
 
@@ -178,7 +177,7 @@ func (m mainMenuModel) headerView() string {
 	translation := fmt.Sprintf("Current translation: %s", apiCfg.CurrentlyReading.TranslationName)
 	translation = styles.InfoText.Render(translation)
 
-	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar, user, apiKey, translation)
+	return lipgloss.JoinVertical(lipgloss.Center, topBottomBar, topMsg, topBottomBar, user, translation, apiKey)
 }
 
 // Returns the name of the menu item at index as a string.

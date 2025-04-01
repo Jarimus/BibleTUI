@@ -1,10 +1,10 @@
-name: Build Artifact Executables
+name: Build Executable Artifacts
 
 on: workflow_dispatch
 
 jobs:
   build:
-    name: Build Executable
+    name: Build Executables
     runs-on: ubuntu-latest
 
     strategy:
@@ -33,7 +33,12 @@ jobs:
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
-        run: go build -o "BibleTUI-${{ matrix.os }}-${{ matrix.arch }}" .
+        run: |
+          # Determine the file extension based on the OS
+          EXT=""
+          if [ "${{ matrix.os }}" = "windows" ]; then EXT=".exe"; fi
+          # Build the executable with the correct extension
+          go build -o "BibleTUI-${{ matrix.os }}-${{ matrix.arch }}${EXT}" .
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

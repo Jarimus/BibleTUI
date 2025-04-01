@@ -57,12 +57,12 @@ func newUsersMenu() usersMenuModel {
 
 	// Settings for the text input
 	m.textInput = textinput.New()
-	m.textInput.Cursor.Style = styles.BlueText
-	m.textInput.CharLimit = 20
-	m.textInput.EchoCharacter = '_'
-	m.textInput.Placeholder = "Enter user name"
-	m.textInput.PlaceholderStyle = styles.InfoText
 	m.textInput.TextStyle = styles.BlueText
+	m.textInput.PromptStyle = styles.BlueText
+	m.textInput.PlaceholderStyle = styles.BlueText
+	m.textInput.CharLimit = 20
+	m.textInput.Prompt = "> "
+	m.textInput.Placeholder = "Enter user name"
 
 	// Initial info text
 	m.infoText = "Press 'Del' to delete a user"
@@ -99,6 +99,8 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if !m.textInput.Focused() {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
+			m.notificationText = ""
+			m.errorText = ""
 			switch msg.String() {
 			case tea.KeyEsc.String():
 				return m, func() tea.Msg { return goBackMsg{} }
@@ -128,7 +130,7 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if activeListItem.name != "Back" && activeListItem.name != "Create new user" && activeListItem.name != "Default" {
 					if activeListItem.name == apiCfg.CurrentUser {
 						apiCfg.CurrentUser = "Default"
-						apiCfg.CurrentUserID = 0
+						apiCfg.CurrentUserID = 1
 						apiCfg.CurrentlyReading = currentlyReading{}
 						apiCfg.CurrentlyReading.TranslationName = "No translation"
 					}
@@ -144,6 +146,7 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.usersList = slices.Delete(m.usersList, i, i+1)
 						}
 					}
+					m.errorText = fmt.Sprintf("User '%s' deleted", activeListItem.name)
 				}
 			}
 		}
@@ -216,9 +219,10 @@ func (m usersMenuModel) View() string {
 	inputText = lipgloss.PlaceHorizontal(window_width, 0.5, inputText)
 
 	// Vertical placement of elements
-	inputText = lipgloss.PlaceVertical(3, 0.5, inputText)
-	notificationText = lipgloss.PlaceVertical(3, 0.5, notificationText)
-	errorText = lipgloss.PlaceVertical(window_height-lipgloss.Height(uiString)-lipgloss.Height(inputText)-lipgloss.Height(notificationText)-lipgloss.Height(infoText), 1, errorText)
+	inputText = lipgloss.PlaceVertical(2, 1, inputText)
+	notificationText = lipgloss.PlaceVertical(2, 1, notificationText)
+	errorText = lipgloss.PlaceVertical(2, 1, errorText)
+	infoText = lipgloss.PlaceVertical(window_height-lipgloss.Height(uiString)-lipgloss.Height(inputText)-lipgloss.Height(notificationText)-lipgloss.Height(errorText), 1, infoText)
 
 	return lipgloss.JoinVertical(0, uiString, inputText, notificationText, errorText, infoText)
 }
