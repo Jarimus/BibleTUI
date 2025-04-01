@@ -275,7 +275,7 @@ func selectUser(user string) tea.Cmd {
 
 		// Set the current translation to the first translation the user has on their list.
 		userTranslations, err := apiCfg.dbQueries.GetTranslationsForUser(context.Background(), user.ID)
-		if err == sql.ErrNoRows {
+		if err == sql.ErrNoRows || len(userTranslations) == 0 {
 			apiCfg.CurrentlyReading.TranslationID = ""
 			apiCfg.CurrentlyReading.TranslationName = "No translation"
 		} else if err != nil {
