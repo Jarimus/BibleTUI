@@ -52,6 +52,29 @@ func (q *Queries) DeleteTranslationForUser(ctx context.Context, arg DeleteTransl
 	return err
 }
 
+const getTranslationForUserById = `-- name: GetTranslationForUserById :one
+SELECT id, name, api_id, user_id FROM translations
+    WHERE api_id = ?
+    AND user_id = ?
+`
+
+type GetTranslationForUserByIdParams struct {
+	ApiID  string
+	UserID int64
+}
+
+func (q *Queries) GetTranslationForUserById(ctx context.Context, arg GetTranslationForUserByIdParams) (Translation, error) {
+	row := q.db.QueryRowContext(ctx, getTranslationForUserById, arg.ApiID, arg.UserID)
+	var i Translation
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ApiID,
+		&i.UserID,
+	)
+	return i, err
+}
+
 const getTranslationsForUser = `-- name: GetTranslationsForUser :many
 SELECT id, name, api_id, user_id FROM translations
     WHERE user_id = ?

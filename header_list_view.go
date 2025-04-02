@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"unicode/utf8"
 
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
 	"github.com/charmbracelet/lipgloss"
@@ -24,7 +24,7 @@ func getHeaderWithList(m headerListModel) string {
 	elements = append(elements, m.headerView())
 
 	// Space between the header and the list
-	elements = append(elements, strings.Repeat(" ", window_width))
+	elements = append(elements, lipgloss.PlaceHorizontal(window_width, 0.5, " "))
 
 	// When not all items fit the screen, we need to limit them.:
 	listLength := m.getListLength()
@@ -35,15 +35,18 @@ func getHeaderWithList(m headerListModel) string {
 	// show i items from the list, starting from n
 	for i := range itemsShown {
 		currentIndex := n + i
+		currentListItem := m.getName(currentIndex)
+		if utf8.RuneCountInString(currentListItem) > window_width {
+			currentListItem = currentListItem[:window_width]
+		}
 		if m.getChoiceIndex() == currentIndex {
-			choiceText := fmt.Sprint(styles.GreenText.Render(m.getName(currentIndex)))
+			choiceText := fmt.Sprint(styles.GreenText.Render(currentListItem))
 			elements = append(elements, choiceText)
 		} else {
-			elements = append(elements, m.getName(currentIndex))
+			elements = append(elements, currentListItem)
 		}
 	}
 
 	// join all the elements vertically
-	list := lipgloss.JoinVertical(0.5, elements...)
-	return list
+	return lipgloss.JoinVertical(0.5, elements...)
 }

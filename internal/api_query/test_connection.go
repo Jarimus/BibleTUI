@@ -24,6 +24,8 @@ func TestConnection(apiKey string) error {
 		return err
 	}
 
+	// If status code is 200, everything works.
+	// Otherwise, there's something wrong with the api key.
 	if resp.StatusCode == 200 {
 		return nil
 	} else {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -17,17 +18,42 @@ import (
 const settingsFilePath = "settings.json"
 const logFilePath = "error_log.txt"
 
-// Adds the chosen translation to the database for the active user.
-// Also sets the current translation as the newly added translation.
-func addTranslationToDatabase(translationName, TranslationId string) (database.Translation, tea.Msg) {
-
-	// Create a translation entry in the database
-	params := database.CreateTranslationParams{
-		Name:   translationName,
-		ApiID:  TranslationId,
+func GetTranslationForUserById(translationID string) (database.Translation, error) {
+	params := database.GetTranslationForUserByIdParams{
+		ApiID:  translationID,
 		UserID: apiCfg.CurrentUserID,
 	}
-	translation, err := apiCfg.dbQueries.CreateTranslation(context.Background(), params)
+	translation, err := apiCfg.dbQueries.GetTranslationForUserById(context.Background(), params)
+	if err != nil {
+		return database.Translation{}, err
+	}
+	return translation, nil
+}
+
+// Adds the chosen translation to the database for the active user.
+// Also sets the current translation as the newly added translation.
+func addTranslationToDatabase(translationName, translationId string) (database.Translation, tea.Msg) {
+
+	// First check if the translation already exists
+	getParams := database.GetTranslationForUserByIdParams{
+		ApiID:  translationId,
+		UserID: apiCfg.CurrentUserID,
+	}
+	dbTranslation, err := apiCfg.dbQueries.GetTranslationForUserById(context.Background(), getParams)
+	if err != nil && err != sql.ErrNoRows {
+		return database.Translation{}, err
+	}
+	if dbTranslation.ApiID == translationId {
+		return database.Translation{}, errors.New("translation already added for the current user")
+	}
+
+	// Create a translation entry in the database
+	createParams := database.CreateTranslationParams{
+		Name:   translationName,
+		ApiID:  translationId,
+		UserID: apiCfg.CurrentUserID,
+	}
+	translation, err := apiCfg.dbQueries.CreateTranslation(context.Background(), createParams)
 	if err != nil {
 		return database.Translation{}, err
 	}

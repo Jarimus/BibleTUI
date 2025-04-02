@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
@@ -17,6 +15,7 @@ import (
 type addTranslationModel struct {
 	menuItemsList []addTranslationMenuItem
 	choiceIndex   int
+	errorText     string
 }
 
 type addTranslationMenuItem struct {
@@ -31,6 +30,8 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 	// Get all the different translations for the language
 	var menuItemsList = []addTranslationMenuItem{}
 	for _, translation := range biblesData.Data {
+
+		// Only add a single instance of each translation (not all different versions)
 		var found bool
 		for _, menuItem := range menuItemsList {
 			if menuItem.name == translation.Name {
@@ -38,7 +39,7 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 			}
 		}
 		if !found {
-			// Adds the description to the
+			// Adds the description at the end of the translation's name if it's not empty or 'common'.
 			var name string
 			if slices.Contains([]string{"", "common"}, strings.ToLower(translation.Description)) {
 				name = translation.Name
@@ -70,7 +71,10 @@ func (m addTranslationModel) Init() tea.Cmd {
 func (m addTranslationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Model handles navigating the menu
 	switch msg := msg.(type) {
+	case error:
+		m.errorText = msg.Error()
 	case tea.KeyMsg:
+		m.errorText = ""
 		switch msg.String() {
 		case tea.KeyEsc.String():
 			return m, func() tea.Msg { return goBackMsg{} }
@@ -107,7 +111,13 @@ func (m addTranslationModel) headerView() string {
 	topMsg := "* Choose a translation to add *"
 	topBottomBar := styles.YellowText.Render(strings.Repeat("*", len(topMsg)))
 	topMsg = styles.YellowText.Render(topMsg)
-	return lipgloss.JoinVertical(lipgloss.Left, topBottomBar, topMsg, topBottomBar)
+	header := topBottomBar + "\n" + topMsg + "\n" + topBottomBar
+	header = lipgloss.PlaceHorizontal(window_width, 0.5, header)
+	if m.errorText != "" {
+		errorText := lipgloss.PlaceHorizontal(window_width, 0.5, styles.RedText.Render(m.errorText))
+		return lipgloss.JoinVertical(0, header, errorText)
+	}
+	return lipgloss.JoinVertical(0, header)
 }
 
 // Returns the name of the menu item at index as a string.
@@ -143,8 +153,8 @@ func addNewTranslation(translationName, translationID string) func() tea.Msg {
 	apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(translation.ApiID, apiCfg.ApiKey)
 	if err != nil {
 		msg := styles.RedText.Render("Unable to access the api. Enter a valid API Key to access the Bible translations.")
-		log.Println(msg)
-		time.Sleep(1500 * time.Millisecond)
+		tea.Println(msg)
+		// time.Sleep(1500 * time.Millisecond)
 	}
 
 	err = saveSettings()

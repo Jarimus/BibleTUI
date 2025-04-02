@@ -14,3 +14,8 @@ SELECT * FROM translations
 -- name: DeleteTranslationForUser :exec
 DELETE FROM translations
     WHERE user_id = ? AND api_id = ?;
+
+-- name: GetTranslationForUserById :one
+SELECT * FROM translations
+    WHERE api_id = ?
+    AND user_id = ?;

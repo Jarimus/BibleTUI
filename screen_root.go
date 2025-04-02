@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"slices"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
@@ -47,8 +46,6 @@ func (m rootScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case api_query.ChapterData:
 		apiCfg.CurrentlyReading.ChapterData = msg
-	case error:
-		log.Fatal(msg)
 	}
 
 	// Get the current model from the top of the model stack and call its Update method, and update it
