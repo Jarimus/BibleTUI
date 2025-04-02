@@ -23,6 +23,7 @@ type usersMenuModel struct {
 	notificationText  string
 	notificationStyle lipgloss.Style
 	errorText         string
+	confirmDelete     bool
 }
 
 // Struct for users menu items.
@@ -100,8 +101,15 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if !m.textInput.Focused() {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
+			// Hide notification and error texts when user navigates the menu.
+			// Also reset the user deletion confirmation.
 			m.notificationText = ""
 			m.errorText = ""
+			if msg.String() != tea.KeyDelete.String() {
+				m.confirmDelete = false
+			}
+
+			// Check keystrokes
 			switch msg.String() {
 			case tea.KeyEsc.String():
 				return m, func() tea.Msg { return goBackMsg{} }
@@ -115,6 +123,7 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case tea.KeyPgDown.String(), "right":
 				m.choiceIndex = min(len(m.usersList)-1, m.choiceIndex+10)
+
 			// Calls the command for the active list item, goes back a screen if no command is specified.
 			case "enter":
 				if m.usersList[m.choiceIndex].command == nil {
@@ -124,11 +133,23 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				cmd = m.usersList[m.choiceIndex].command(m.usersList[m.choiceIndex].name)
 				return m, cmd
+
+			// Pressing delete attempts to delete the highlighted user.
 			case tea.KeyDelete.String():
+
 				activeListItem := m.usersList[m.choiceIndex]
 
-				// If the cursor is not on the default menu items, delete the user from the database and the list.
+				// If the cursor is not on the default menu items, attempt to delete the user from the database and the list.
 				if activeListItem.name != "Back" && activeListItem.name != "Create new user" && activeListItem.name != "Default" {
+
+					// First press shows a notification about confirming the deletion.
+					if !m.confirmDelete {
+						m.errorText = fmt.Sprintf("Are you sure you want to delete user '%s'?", activeListItem.name)
+						m.confirmDelete = true
+						return m, nil
+					}
+
+					// Second press deletes the user.
 					if activeListItem.name == apiCfg.CurrentUser {
 						apiCfg.CurrentUser = "Default"
 						apiCfg.CurrentUserID = 1
@@ -147,7 +168,8 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.usersList = slices.Delete(m.usersList, i, i+1)
 						}
 					}
-					m.errorText = fmt.Sprintf("User '%s' deleted", activeListItem.name)
+					m.errorText = fmt.Sprintf("User deleted: '%s'", activeListItem.name)
+					m.confirmDelete = false
 				}
 			}
 		}
