@@ -6,6 +6,7 @@ import (
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	"github.com/Jarimus/BibleTUI/internal/styles"
+	"github.com/Jarimus/BibleTUI/internal/tts"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -81,6 +82,9 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
+	case error:
+		m.viewport.SetContent(msg.Error())
+
 	// Window resize affects the viewport dimensions
 	// The text needs to be reformatted for the new dimensions to get the linebreaks right
 	case tea.WindowSizeMsg:
@@ -110,6 +114,8 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, toPreviousChapter)
 		case tea.KeyRight.String():
 			cmds = append(cmds, toNextChapter)
+		case "p":
+			go tts.SpeakText(m.bibleText, apiCfg.CurrentlyReading.LanguageID)
 		}
 
 	}
@@ -136,7 +142,14 @@ func (m bibleScreenModel) headerView() string {
 
 // Style and render the footer
 func (m bibleScreenModel) footerView() string {
-	help := "↑↓: scroll | ← →: previous/next chapter | esc: quit"
+	languageCode := tts.ISOtoTTScode(apiCfg.CurrentlyReading.LanguageID)
+	var help string
+	if languageCode == "" {
+		help = "↑↓: scroll | ← →: previous/next chapter | esc: quit"
+	} else {
+		help = "p: play audio | ↑↓: scroll | ← →: previous/next chapter | esc: quit"
+	}
+
 	info := infoStyle.Render(fmt.Sprintf("%s | %3.f%%", help, m.viewport.ScrollPercent()*100))
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(info)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)

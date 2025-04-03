@@ -32,7 +32,7 @@ func GetTranslationForUserById(translationID string) (database.Translation, erro
 
 // Adds the chosen translation to the database for the active user.
 // Also sets the current translation as the newly added translation.
-func addTranslationToDatabase(translationName, translationId string) (database.Translation, tea.Msg) {
+func addTranslationToDatabase(translationName, translationId, languageID string) (database.Translation, tea.Msg) {
 
 	// First check if the translation already exists
 	getParams := database.GetTranslationForUserByIdParams{
@@ -49,9 +49,10 @@ func addTranslationToDatabase(translationName, translationId string) (database.T
 
 	// Create a translation entry in the database
 	createParams := database.CreateTranslationParams{
-		Name:   translationName,
-		ApiID:  translationId,
-		UserID: apiCfg.CurrentUserID,
+		Name:       translationName,
+		ApiID:      translationId,
+		LanguageID: languageID,
+		UserID:     apiCfg.CurrentUserID,
 	}
 	translation, err := apiCfg.dbQueries.CreateTranslation(context.Background(), createParams)
 	if err != nil {
@@ -61,6 +62,7 @@ func addTranslationToDatabase(translationName, translationId string) (database.T
 	return translation, nil
 }
 
+// Return all translations for the current user
 func loadTranslationsForUser() ([]database.Translation, error) {
 
 	translations, err := apiCfg.dbQueries.GetTranslationsForUser(context.Background(), apiCfg.CurrentUserID)

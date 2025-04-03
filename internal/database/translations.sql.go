@@ -10,28 +10,36 @@ import (
 )
 
 const createTranslation = `-- name: CreateTranslation :one
-INSERT INTO translations (name, user_id, api_id)
+INSERT INTO translations (name, api_id, language_id, user_id)
 VALUES(
+    ?,
     ?,
     ?,
     ?
 )
-RETURNING id, name, api_id, user_id
+RETURNING id, name, api_id, language_id, user_id
 `
 
 type CreateTranslationParams struct {
-	Name   string
-	UserID int64
-	ApiID  string
+	Name       string
+	ApiID      string
+	LanguageID string
+	UserID     int64
 }
 
 func (q *Queries) CreateTranslation(ctx context.Context, arg CreateTranslationParams) (Translation, error) {
-	row := q.db.QueryRowContext(ctx, createTranslation, arg.Name, arg.UserID, arg.ApiID)
+	row := q.db.QueryRowContext(ctx, createTranslation,
+		arg.Name,
+		arg.ApiID,
+		arg.LanguageID,
+		arg.UserID,
+	)
 	var i Translation
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.ApiID,
+		&i.LanguageID,
 		&i.UserID,
 	)
 	return i, err
@@ -53,7 +61,7 @@ func (q *Queries) DeleteTranslationForUser(ctx context.Context, arg DeleteTransl
 }
 
 const getTranslationForUserById = `-- name: GetTranslationForUserById :one
-SELECT id, name, api_id, user_id FROM translations
+SELECT id, name, api_id, language_id, user_id FROM translations
     WHERE api_id = ?
     AND user_id = ?
 `
@@ -70,13 +78,14 @@ func (q *Queries) GetTranslationForUserById(ctx context.Context, arg GetTranslat
 		&i.ID,
 		&i.Name,
 		&i.ApiID,
+		&i.LanguageID,
 		&i.UserID,
 	)
 	return i, err
 }
 
 const getTranslationsForUser = `-- name: GetTranslationsForUser :many
-SELECT id, name, api_id, user_id FROM translations
+SELECT id, name, api_id, language_id, user_id FROM translations
     WHERE user_id = ?
 `
 
@@ -93,6 +102,7 @@ func (q *Queries) GetTranslationsForUser(ctx context.Context, userID int64) ([]T
 			&i.ID,
 			&i.Name,
 			&i.ApiID,
+			&i.LanguageID,
 			&i.UserID,
 		); err != nil {
 			return nil, err

@@ -1,6 +1,7 @@
 -- name: CreateTranslation :one
-INSERT INTO translations (name, user_id, api_id)
+INSERT INTO translations (name, api_id, language_id, user_id)
 VALUES(
+    ?,
     ?,
     ?,
     ?

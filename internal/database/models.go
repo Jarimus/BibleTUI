@@ -9,10 +9,11 @@ import (
 )
 
 type Translation struct {
-	ID     int64
-	Name   string
-	ApiID  string
-	UserID int64
+	ID         int64
+	Name       string
+	ApiID      string
+	LanguageID string
+	UserID     int64
 }
 
 type User struct {

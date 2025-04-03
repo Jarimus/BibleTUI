@@ -20,7 +20,7 @@ type RandomQuery struct {
 	} `json:"random_verse"`
 }
 
-// NEW API DOWN HERE
+// NEW API DOWN HERE (API.Bible)
 
 // Data for the books of a translation. Use the Bible-id for the search:
 // https://api.scripture.api.bible/v1/bibles/[BIBLE-ID]/books

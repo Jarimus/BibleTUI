@@ -4,3 +4,4 @@ BibleTUI
 .env
 *.json
 *.db
+audio/

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
+	"github.com/Jarimus/BibleTUI/internal/tts"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -19,9 +20,10 @@ type addTranslationModel struct {
 }
 
 type addTranslationMenuItem struct {
-	name    string
-	id      string
-	command func(string, string) func() tea.Msg
+	name          string
+	translationID string
+	languageID    string
+	command       func(string, string, string) func() tea.Msg
 }
 
 // Creates a new tea.Model to display all the different translations from which a new translation can be picked.
@@ -41,15 +43,21 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 		if !found {
 			// Adds the description at the end of the translation's name if it's not empty or 'common'.
 			var name string
+			var audioAvailable string
+			if _, ok := tts.LanguageMap[translation.Language.ID]; ok {
+				audioAvailable = " [audio]"
+			}
 			if slices.Contains([]string{"", "common"}, strings.ToLower(translation.Description)) {
-				name = translation.Name
+				name = fmt.Sprintf("%s%s", translation.Name, audioAvailable)
 			} else {
-				name = fmt.Sprintf("%s (%s)", translation.Name, translation.Description)
+
+				name = fmt.Sprintf("%s (%s)%s", translation.Name, translation.Description, audioAvailable)
 			}
 			menuItemsList = append(menuItemsList, addTranslationMenuItem{
-				name:    name,
-				id:      translation.ID,
-				command: addNewTranslation,
+				name:          name,
+				translationID: translation.ID,
+				languageID:    translation.Language.ID,
+				command:       addNewTranslation,
 			})
 		}
 
@@ -95,8 +103,9 @@ func (m addTranslationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			name := m.menuItemsList[m.choiceIndex].name
-			id := m.menuItemsList[m.choiceIndex].id
-			return m, m.menuItemsList[m.choiceIndex].command(name, id)
+			translationID := m.menuItemsList[m.choiceIndex].translationID
+			languageID := m.menuItemsList[m.choiceIndex].languageID
+			return m, m.menuItemsList[m.choiceIndex].command(name, translationID, languageID)
 		}
 	}
 	return m, nil
@@ -137,10 +146,10 @@ func (m addTranslationModel) getChoiceIndex() int {
 
 // Adds the chosen translation to the list of translations.
 // Also sets the new translation as the current translation.
-func addNewTranslation(translationName, translationID string) func() tea.Msg {
+func addNewTranslation(translationName, translationID, languageID string) func() tea.Msg {
 
 	// Add the translation to the database
-	translation, err := addTranslationToDatabase(translationName, translationID)
+	translation, err := addTranslationToDatabase(translationName, translationID, languageID)
 	if err != nil {
 		return func() tea.Msg {
 			return err
@@ -150,6 +159,7 @@ func addNewTranslation(translationName, translationID string) func() tea.Msg {
 	// Set the current translation to the newly added translation
 	apiCfg.CurrentlyReading.TranslationName = translation.Name
 	apiCfg.CurrentlyReading.TranslationID = translation.ApiID
+	apiCfg.CurrentlyReading.LanguageID = translation.LanguageID
 	apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(translation.ApiID, apiCfg.ApiKey)
 	if err != nil {
 		msg := styles.RedText.Render("Unable to access the api. Enter a valid API Key to access the Bible translations.")

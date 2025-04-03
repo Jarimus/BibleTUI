@@ -21,9 +21,10 @@ type translationSelectionModel struct {
 }
 
 type translationMenuItem struct {
-	name    string
-	id      string
-	command func(string, string) func() tea.Msg
+	name          string
+	translationID string
+	languageID    string
+	command       func(string, string, string) func() tea.Msg
 }
 
 // return a new tea.Model for a menu to select a translation to use.
@@ -42,15 +43,15 @@ func newTranslationScreen() translationSelectionModel {
 
 	for _, item := range translationsDB {
 		translations = append(translations, translationMenuItem{
-			name:    item.Name,
-			id:      item.ApiID,
-			command: selectTranslation,
+			name:          item.Name,
+			translationID: item.ApiID,
+			languageID:    item.LanguageID,
+			command:       selectTranslation,
 		})
 	}
 
 	translations = append(translations, translationMenuItem{
 		name:    "Add new translation",
-		id:      "",
 		command: openSelectLanguageScreen,
 	})
 	translations = append(translations, translationMenuItem{
@@ -88,15 +89,16 @@ func (m translationSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			name := m.menuItems[m.choiceIndex].name
-			id := m.menuItems[m.choiceIndex].id
-			return m, m.menuItems[m.choiceIndex].command(name, id)
+			translationID := m.menuItems[m.choiceIndex].translationID
+			languageID := m.menuItems[m.choiceIndex].languageID
+			return m, m.menuItems[m.choiceIndex].command(name, translationID, languageID)
 		case tea.KeyDelete.String():
 			if m.menuItems[m.choiceIndex].name != "Add new translation" && m.menuItems[m.choiceIndex].name != "Back" {
 
 				// Delete the translation for the user from the database.
 				params := database.DeleteTranslationForUserParams{
 					UserID: apiCfg.CurrentUserID,
-					ApiID:  m.menuItems[m.choiceIndex].id,
+					ApiID:  m.menuItems[m.choiceIndex].translationID,
 				}
 				err := apiCfg.dbQueries.DeleteTranslationForUser(context.Background(), params)
 				if err != nil {
@@ -150,11 +152,12 @@ func (m translationSelectionModel) getChoiceIndex() int {
 
 // Queries a translation and stores the data in memory
 // Translation data includes, among others, the names and IDs for the books in the translation
-func selectTranslation(translationName, translationID string) func() tea.Msg {
+func selectTranslation(translationName, translationID, languageID string) func() tea.Msg {
 	return func() tea.Msg {
 		var err error
 		apiCfg.CurrentlyReading.TranslationID = translationID
 		apiCfg.CurrentlyReading.TranslationName = translationName
+		apiCfg.CurrentlyReading.LanguageID = languageID
 		apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(apiCfg.CurrentlyReading.TranslationID, apiCfg.ApiKey)
 		if err != nil {
 			return err
@@ -170,7 +173,7 @@ func selectTranslation(translationName, translationID string) func() tea.Msg {
 }
 
 // Return a function the returns a tea.Model screen to select a language in.
-func openSelectLanguageScreen(string, string) func() tea.Msg {
+func openSelectLanguageScreen(string, string, string) func() tea.Msg {
 	return func() tea.Msg {
 		return newLanguagesScreen()
 	}
