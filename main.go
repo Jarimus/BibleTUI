@@ -3,9 +3,11 @@ package main
 import (
 	_ "embed"
 	"log"
+	"os"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	"github.com/Jarimus/BibleTUI/internal/database"
+	"github.com/Jarimus/BibleTUI/internal/tts"
 	tea "github.com/charmbracelet/bubbletea"
 	_ "modernc.org/sqlite"
 )
@@ -58,6 +60,11 @@ func main() {
 	err = loadSettings()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// Clean audio folder
+	if err = os.RemoveAll(tts.AudioFolderPath); err != nil {
+		log.Fatalf("Error removing audio folder: %s", err.Error())
 	}
 
 	// Connect to database

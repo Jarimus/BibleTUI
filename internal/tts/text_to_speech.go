@@ -2,28 +2,45 @@ package tts
 
 import (
 	"os"
-	"regexp"
 
 	htgotts "github.com/hegedustibor/htgo-tts"
 	"github.com/hegedustibor/htgo-tts/handlers"
 )
 
-func SpeakText(text, lan string) error {
-	lan = ISOtoTTScode(lan)
-	speech := htgotts.Speech{Folder: "audio", Language: lan, Handler: &handlers.Native{}}
+const AudioFolderPath = "BibleTUIaudio"
 
-	reObject, err := regexp.Compile(`\[.*?\]`)
+// Uses htgo-tts to play audio. Input language should be ISO 63
+func SpeakText(text, lan string) error {
+
+	// Delete any previous audio files.
+	if err := os.RemoveAll(AudioFolderPath); err != nil {
+		return err
+	}
+
+	// Convert the
+	lan = ISOtoTTScode(lan)
+	speech := htgotts.Speech{Folder: AudioFolderPath, Language: lan, Handler: &handlers.Native{}}
+
+	// Splits the text (a chapter) into verses
+	verses, err := splitVerses(text)
 	if err != nil {
 		return err
 	}
-	verses := reObject.Split(text, -1)
+
+	// Play each verse after checking whether it is short enough for the tts to handle.
 	for _, verse := range verses {
-		if err := speech.Speak(verse); err != nil {
-			return err
+		parts := splitText(verse)
+		for _, part := range parts {
+			if err := speech.Speak(part); err != nil {
+				return err
+			}
+
 		}
-		if err := os.RemoveAll("audio"); err != nil {
-			return err
-		}
+	}
+
+	// Delete the temp audio files.
+	if err := os.RemoveAll(AudioFolderPath); err != nil {
+		return err
 	}
 
 	return nil

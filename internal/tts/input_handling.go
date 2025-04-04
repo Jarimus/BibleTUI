@@ -1,5 +1,10 @@
 package tts
 
+import (
+	"regexp"
+	"strings"
+)
+
 // List of supported languages
 var LanguageMap = map[string]string{
 	"eng":    "en", // English US
@@ -66,11 +71,49 @@ var LanguageMap = map[string]string{
 	"bos":    "bs", // Bosnian
 }
 
-// This function coverts the ISO 639-3 language code used by the API.Bible API to the format used by the text-to-speech module.
+// Converts the ISO 639-3 language code used by the API.Bible API to the format used by the text-to-speech module.
 func ISOtoTTScode(ISO string) string {
 	result, ok := LanguageMap[ISO]
 	if !ok {
 		return ""
 	}
 	return result
+}
+
+const maxLength = 200
+
+// Splits text into smaller parts for tts to handle.
+func splitText(text string) []string {
+	var parts []string
+	sentences := strings.Split(text, ". ") // Split by sentence
+	for _, sentence := range sentences {
+		if len(sentence) > maxLength {
+			words := strings.Split(sentence, " ")
+			var part string
+			for _, word := range words {
+				if len(part)+len(word)+1 > maxLength {
+					parts = append(parts, part)
+					part = word
+				} else {
+					if part != "" {
+						part += " "
+					}
+					part += word
+				}
+			}
+			parts = append(parts, part)
+		} else {
+			parts = append(parts, sentence)
+		}
+	}
+	return parts
+}
+
+func splitVerses(text string) ([]string, error) {
+
+	reObject, err := regexp.Compile(`\[.*?\]`)
+	if err != nil {
+		return nil, err
+	}
+	return reObject.Split(text, -1), nil
 }
