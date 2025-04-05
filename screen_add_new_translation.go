@@ -7,7 +7,6 @@ import (
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
-	"github.com/Jarimus/BibleTUI/internal/tts"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -43,15 +42,11 @@ func newAddTranslationScreen(biblesData api_query.BiblesData) addTranslationMode
 		if !found {
 			// Adds the description at the end of the translation's name if it's not empty or 'common'.
 			var name string
-			var audioAvailable string
-			if _, ok := tts.LanguageMap[translation.Language.ID]; ok {
-				audioAvailable = " [audio]"
-			}
 			if slices.Contains([]string{"", "common"}, strings.ToLower(translation.Description)) {
-				name = fmt.Sprintf("%s%s", translation.Name, audioAvailable)
+				name = translation.Name
 			} else {
 
-				name = fmt.Sprintf("%s (%s)%s", translation.Name, translation.Description, audioAvailable)
+				name = fmt.Sprintf("%s (%s)", translation.Name, translation.Description)
 			}
 			menuItemsList = append(menuItemsList, addTranslationMenuItem{
 				name:          name,

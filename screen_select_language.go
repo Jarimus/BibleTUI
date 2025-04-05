@@ -6,6 +6,7 @@ import (
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
+	"github.com/Jarimus/BibleTUI/internal/tts"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -42,8 +43,14 @@ func newLanguagesScreen() languageSelectionModel {
 			}
 		}
 		if !found {
+			var name string
+			if tts.ISOtoTTScode(translation.Language.ID) != "" {
+				name = translation.Language.Name + " [audio available]"
+			} else {
+				name = translation.Language.Name
+			}
 			menuItemsList = append(menuItemsList, menuItem{
-				name:    translation.Language.Name,
+				name:    name,
 				id:      translation.Language.ID,
 				command: selectLanguage,
 			})
