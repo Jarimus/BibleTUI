@@ -6,6 +6,7 @@
 - Get different Bible translations from [API.Bible](https://scripture.api.bible/) in a multitude of languages.
 - Read them in the command line with an intuitive interface.
 - Keep a record of your favourite translations.
+- Listen to the Bible in select languages using text-to-speech.
 - Multiple users - each with their own set of translations.
 
 ## Why
@@ -27,9 +28,9 @@ But command line? With an easy-to-use interface? Welcome to BibleTUI!
 - 'Read the Bible' lets you choose a book and chapter, and start reading in a scrolling viewport.
 - 'Change translation' allows you to change the current translation or add new translations to your personal list from the hundreds available in the API.Bible api.
 - You can have multiple users, each with their own list of Bible translations.
+- Press 'p' while reading to listen to the chapter in select languages.
 
 ## Potential new features
-- Text-to-speech?
 - Better support for different alphabets
 - Search function for the longer lists (languages, translations)
 
