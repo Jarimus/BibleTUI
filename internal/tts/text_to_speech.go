@@ -10,7 +10,7 @@ import (
 const AudioFolderPath = "BibleTUIaudio"
 
 // Uses htgo-tts to play audio. Input language should be ISO 63
-func SpeakText(text, lan string) error {
+func SpeakText(text, lan string, audioStop chan bool) error {
 
 	// Delete any previous audio files.
 	if err := os.RemoveAll(AudioFolderPath); err != nil {
@@ -27,10 +27,20 @@ func SpeakText(text, lan string) error {
 		return err
 	}
 
+	// Listen to stop signal from audioStop
+	var done bool
+	listenForDone := func(bool, chan bool) {
+		done = <-audioStop
+	}
+	go listenForDone(done, audioStop)
+
 	// Play each verse after checking whether it is short enough for the tts to handle.
 	for _, verse := range verses {
 		parts := splitText(verse)
 		for _, part := range parts {
+			if done {
+				break
+			}
 			if err := speech.Speak(part); err != nil {
 				return err
 			}

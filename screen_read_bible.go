@@ -109,13 +109,20 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case tea.KeyEsc.String():
+			go stopAudio()
 			return m, func() tea.Msg { return goBackMsg{} }
 		case tea.KeyLeft.String():
+			go stopAudio()
 			cmds = append(cmds, toPreviousChapter)
 		case tea.KeyRight.String():
+			go stopAudio()
 			cmds = append(cmds, toNextChapter)
 		case "p":
-			go tts.SpeakText(m.bibleText, apiCfg.CurrentlyReading.LanguageID)
+			if apiCfg.CurrentlyReading.audioStop != nil {
+				stopAudio()
+			} else {
+				go playAudio(m.bibleText, apiCfg.CurrentlyReading.LanguageID)
+			}
 		}
 
 	}
@@ -144,13 +151,19 @@ func (m bibleScreenModel) headerView() string {
 func (m bibleScreenModel) footerView() string {
 	languageCode := tts.ISOtoTTScode(apiCfg.CurrentlyReading.LanguageID)
 	var help string
+	var audioHelpText string
 	if languageCode == "" {
 		help = "↑↓: scroll | ← →: previous/next chapter | esc: quit"
 	} else {
-		help = "p: play audio | ↑↓: scroll | ← →: previous/next chapter | esc: quit"
+		if apiCfg.CurrentlyReading.audioStop != nil {
+			audioHelpText = styles.GreenText.Render("p: stop audio")
+		} else {
+			audioHelpText = "p: play audio"
+		}
+		help = " | ↑↓: scroll | ← →: previous/next chapter | esc: quit"
 	}
 
-	info := infoStyle.Render(fmt.Sprintf("%s | %3.f%%", help, m.viewport.ScrollPercent()*100))
+	info := infoStyle.Render(fmt.Sprintf("%s%s | %3.f%%", audioHelpText, help, m.viewport.ScrollPercent()*100))
 	line := strings.Repeat("-", max(0, m.viewport.Width-lipgloss.Width(info)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
 
@@ -184,4 +197,24 @@ func formatBibleText(text string, width int) string {
 	formattedText = wordwrap.WrapString(formattedText, uint(width))
 
 	return formattedText
+}
+
+func playAudio(text, language string) error {
+	// Create a channel to listen for when to stop playback.
+	audioStop := make(chan bool, 1)
+	apiCfg.CurrentlyReading.audioStop = audioStop
+	err := tts.SpeakText(text, language, audioStop)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func stopAudio() {
+	if apiCfg.CurrentlyReading.audioStop == nil {
+		return
+	}
+	apiCfg.CurrentlyReading.audioStop <- true
+	close(apiCfg.CurrentlyReading.audioStop)
+	apiCfg.CurrentlyReading.audioStop = nil
 }

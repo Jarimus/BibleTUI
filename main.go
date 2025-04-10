@@ -36,6 +36,7 @@ type currentlyReading struct {
 	TranslationData api_query.TranslationData `json:"translation_data"`
 	BookData        api_query.BookData        `json:"book_data"`
 	ChapterData     api_query.ChapterData     `json:"chapter_data"`
+	audioStop       chan bool
 }
 
 // A config struct for current translation, user, database queries
