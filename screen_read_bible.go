@@ -85,6 +85,13 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case error:
 		m.viewport.SetContent(msg.Error())
 
+	case audioDone:
+		if apiCfg.CurrentlyReading.audioStop != nil {
+			apiCfg.CurrentlyReading.audioStop <- true
+			close(apiCfg.CurrentlyReading.audioStop)
+			apiCfg.CurrentlyReading.audioStop = nil
+		}
+
 	// Window resize affects the viewport dimensions
 	// The text needs to be reformatted for the new dimensions to get the linebreaks right
 	case tea.WindowSizeMsg:
@@ -109,19 +116,16 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case tea.KeyEsc.String():
-			go stopAudio()
-			return m, func() tea.Msg { return goBackMsg{} }
+			cmds = append(cmds, stopAudio, backCmd)
 		case tea.KeyLeft.String():
-			go stopAudio()
-			cmds = append(cmds, toPreviousChapter)
+			cmds = append(cmds, stopAudio, toPreviousChapter)
 		case tea.KeyRight.String():
-			go stopAudio()
-			cmds = append(cmds, toNextChapter)
+			cmds = append(cmds, stopAudio, toNextChapter)
 		case "p":
 			if apiCfg.CurrentlyReading.audioStop != nil {
-				stopAudio()
+				cmds = append(cmds, stopAudio)
 			} else {
-				go playAudio(m.bibleText, apiCfg.CurrentlyReading.LanguageID)
+				cmds = append(cmds, playAudio(m.bibleText, apiCfg.CurrentlyReading.LanguageID))
 			}
 		}
 
@@ -199,22 +203,30 @@ func formatBibleText(text string, width int) string {
 	return formattedText
 }
 
-func playAudio(text, language string) error {
-	// Create a channel to listen for when to stop playback.
-	audioStop := make(chan bool, 1)
-	apiCfg.CurrentlyReading.audioStop = audioStop
-	err := tts.SpeakText(text, language, audioStop)
-	if err != nil {
-		return err
+// Plays the input text in the input language, if supported.
+// Also listens for a stop signal in the audioStop channel.
+func playAudio(text, language string) tea.Cmd {
+	return func() tea.Msg {
+		// Create a channel to listen for when to stop playback.
+		audioStop := make(chan bool, 1)
+		apiCfg.CurrentlyReading.audioStop = audioStop
+		err := tts.SpeakText(text, language, audioStop)
+		if err != nil {
+			return err
+		}
+		return audioDone{}
 	}
-	return nil
+
 }
 
-func stopAudio() {
+// Signals for the audio to stop in the audioStop channel.
+// Also closes the channel and sets it to nil.
+func stopAudio() tea.Msg {
 	if apiCfg.CurrentlyReading.audioStop == nil {
-		return
+		return nil
 	}
 	apiCfg.CurrentlyReading.audioStop <- true
 	close(apiCfg.CurrentlyReading.audioStop)
 	apiCfg.CurrentlyReading.audioStop = nil
+	return nil
 }

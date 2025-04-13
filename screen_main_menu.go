@@ -65,7 +65,7 @@ func newMainMenu() mainMenuModel {
 
 func (m mainMenuModel) Init() tea.Cmd {
 	// Initiate the main menu with a random verse
-	return tea.Batch(m.newRandomVerse, m.textInput.Cursor.BlinkCmd())
+	return m.newRandomVerse
 }
 
 func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -80,7 +80,7 @@ func (m mainMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Put the input field into focus.
 	case focusInput:
 		m.textInput.Focus()
-		return m, nil
+		return m, m.textInput.Cursor.BlinkCmd()
 
 	// when a random query is returned, apply it to the verse viewport
 	case api_query.RandomQuery:

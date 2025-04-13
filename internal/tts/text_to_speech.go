@@ -27,12 +27,11 @@ func SpeakText(text, lan string, audioStop chan bool) error {
 		return err
 	}
 
-	// Listen to stop signal from audioStop
+	// Listen to stop signal from audioStop channel.
 	var done bool
-	listenForDone := func(bool, chan bool) {
+	go func(bool, chan bool) {
 		done = <-audioStop
-	}
-	go listenForDone(done, audioStop)
+	}(done, audioStop)
 
 	// Play each verse after checking whether it is short enough for the tts to handle.
 	for _, verse := range verses {

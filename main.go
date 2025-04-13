@@ -26,7 +26,7 @@ var usersSchema string
 var translationsSchema string
 
 // Database filepath
-var dbFilePath string
+const dbFilePath = "BibleTUI.db"
 
 // Struct for the data about the current translation being read.
 type currentlyReading struct {
@@ -69,8 +69,6 @@ func main() {
 	}
 
 	// Connect to database
-	dbFilePath = "BibleTUI.db"
-
 	err = initializeDB()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)

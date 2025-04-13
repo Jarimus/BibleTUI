@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/Jarimus/BibleTUI/internal/api_query"
 	styles "github.com/Jarimus/BibleTUI/internal/styles"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -80,7 +81,7 @@ func newUsersMenu() usersMenuModel {
 }
 
 func (m usersMenuModel) Init() tea.Cmd {
-	return m.textInput.Cursor.BlinkCmd()
+	return nil
 }
 
 func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -89,6 +90,7 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case focusInput:
 		m.textInput.Focus()
+		return m, m.textInput.Cursor.BlinkCmd()
 	case newNotificationMsg:
 		m.notificationText = msg.text
 		m.notificationStyle = msg.style
@@ -144,17 +146,14 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 					// First press shows a notification about confirming the deletion.
 					if !m.confirmDelete {
-						m.errorText = fmt.Sprintf("Are you sure you want to delete user '%s'?", activeListItem.name)
+						m.errorText = fmt.Sprintf("Are you sure you want to delete user %s? Press 'del' to confirm.", activeListItem.name)
 						m.confirmDelete = true
 						return m, nil
 					}
 
 					// Second press deletes the user.
 					if activeListItem.name == apiCfg.CurrentUser {
-						apiCfg.CurrentUser = "Default"
-						apiCfg.CurrentUserID = 1
-						apiCfg.CurrentlyReading = currentlyReading{}
-						apiCfg.CurrentlyReading.TranslationName = "No translation"
+						selectUser("Default")
 					}
 
 					err := apiCfg.dbQueries.DeleteUser(context.Background(), activeListItem.name)
@@ -168,7 +167,7 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.usersList = slices.Delete(m.usersList, i, i+1)
 						}
 					}
-					m.errorText = fmt.Sprintf("User deleted: '%s'", activeListItem.name)
+					m.errorText = fmt.Sprintf("User deleted: %s", activeListItem.name)
 					m.confirmDelete = false
 				}
 			}
@@ -187,25 +186,8 @@ func (m usersMenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.textInput.CursorEnd()
 				return m, nil
 			case "enter":
-				userInput := m.textInput.Value()
-
-				// Check whether the user already exists in the database
-				dbUser, _ := apiCfg.dbQueries.GetUser(context.Background(), userInput)
-				if dbUser.Name == userInput {
-					m.errorText = "User already exists."
-					return m, nil
-				}
-
-				// If not, create a new user with the given name
-				userInfo, err := apiCfg.dbQueries.CreateUser(context.Background(), userInput)
-				if err != nil {
-					m.errorText = err.Error()
-					return m, nil
-				}
-				m.usersList = slices.Insert(m.usersList, 0, userOption{name: userInfo.Name, command: selectUser})
-				m.notificationText = fmt.Sprintf("User created: %s", userInfo.Name)
-				m.textInput.Reset()
-				m.textInput.Blur()
+				m, cmd := createUser(m)
+				return m, cmd
 			}
 		}
 	}
@@ -280,6 +262,29 @@ func focusInputField(string) tea.Cmd {
 	}
 }
 
+func createUser(m usersMenuModel) (tea.Model, tea.Cmd) {
+	userInput := m.textInput.Value()
+
+	// Check whether the user already exists in the database
+	dbUser, _ := apiCfg.dbQueries.GetUser(context.Background(), userInput)
+	if dbUser.Name == userInput {
+		m.errorText = "User already exists."
+		return m, nil
+	}
+
+	// If not, create a new user with the given name
+	userInfo, err := apiCfg.dbQueries.CreateUser(context.Background(), userInput)
+	if err != nil {
+		m.errorText = err.Error()
+		return m, nil
+	}
+	m.usersList = slices.Insert(m.usersList, 0, userOption{name: userInfo.Name, command: selectUser})
+	m.notificationText = fmt.Sprintf("User created: %s", userInfo.Name)
+	m.textInput.Reset()
+	m.textInput.Blur()
+	return m, nil
+}
+
 func selectUser(user string) tea.Cmd {
 	return func() tea.Msg {
 		// Get user from database
@@ -300,6 +305,7 @@ func selectUser(user string) tea.Cmd {
 		if err == sql.ErrNoRows || len(userTranslations) == 0 {
 			apiCfg.CurrentlyReading.TranslationID = ""
 			apiCfg.CurrentlyReading.TranslationName = "No translation"
+			apiCfg.CurrentlyReading.TranslationData = api_query.TranslationData{}
 		} else if err != nil {
 			return newErrorMsg{
 				text: err.Error(),
@@ -308,6 +314,12 @@ func selectUser(user string) tea.Cmd {
 			firstTranslation := userTranslations[0]
 			apiCfg.CurrentlyReading.TranslationID = firstTranslation.ApiID
 			apiCfg.CurrentlyReading.TranslationName = firstTranslation.Name
+			apiCfg.CurrentlyReading.TranslationData, err = api_query.TranslationQuery(firstTranslation.ApiID, apiCfg.ApiKey)
+			if err != nil {
+				return newErrorMsg{
+					text: err.Error(),
+				}
+			}
 		}
 
 		err = saveSettings()
