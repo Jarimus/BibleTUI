@@ -13,8 +13,15 @@ jobs:
         arch: [amd64, arm64]
 
     steps:
-      - name: Check out code
+      - name: Check out code (no-tts branch for non-Windows)
         uses: actions/checkout@v4
+        if: matrix.os != 'windows'
+        with:
+          ref: no-tts
+
+      - name: Check out code (default branch for Windows)
+        uses: actions/checkout@v4
+        if: matrix.os == 'windows'
 
       - name: Set up Go
         uses: actions/setup-go@v5
