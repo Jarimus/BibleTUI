@@ -7,7 +7,7 @@ import (
 	"github.com/hegedustibor/htgo-tts/handlers"
 )
 
-const AudioFolderPath = "BibleTUIaudio"
+const AudioFolderPath = "BibleTUI_temp"
 
 // Uses htgo-tts to play audio. Input language should be ISO 63
 func SpeakText(text, lan string, audioStop chan bool) error {

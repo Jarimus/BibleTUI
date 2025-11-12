@@ -2,8 +2,10 @@ package main
 
 import (
 	_ "embed"
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	"github.com/Jarimus/BibleTUI/internal/database"
@@ -26,7 +28,7 @@ var usersSchema string
 var translationsSchema string
 
 // Database filepath
-const dbFilePath = "BibleTUI.db"
+const dbFilePath = "BibleTUI_data/BibleTUI.db"
 
 // Struct for the data about the current translation being read.
 type currentlyReading struct {
@@ -53,9 +55,26 @@ var apiCfg config
 
 func main() {
 
-	println("Loading...")
+	// Get the path to the executable
+	exePath, err := os.Executable()
+	if err != nil {
+		fmt.Println("Error getting executable path:", err)
+		return
+	}
 
-	var err error
+	fmt.Println(exePath)
+
+	// Get the directory part of the executable path
+	exeDir := filepath.Dir(exePath)
+
+	// Change working directory to the executable's directory
+	err = os.Chdir(exeDir)
+	if err != nil {
+		fmt.Println("Error changing working directory:", err)
+		return
+	}
+
+	println("Loading...")
 
 	// Load settings
 	err = loadSettings()

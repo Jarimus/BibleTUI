@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"time"
@@ -15,8 +16,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-const settingsFilePath = "settings.json"
-const logFilePath = "error_log.txt"
+const settingsDir = "BibleTUI_data/"
+const settingsFilePath = settingsDir + "settings.json"
+const logFilePath = settingsDir + "error_log.txt"
 
 func GetTranslationForUserById(translationID string) (database.Translation, error) {
 	params := database.GetTranslationForUserByIdParams{
@@ -76,6 +78,12 @@ func loadTranslationsForUser() ([]database.Translation, error) {
 // Loads and return the apiCfg from a json-file.
 // If file is not found, returns an empty config file with a default Bible translation as the current translation.
 func loadSettings() error {
+
+	// Check for settings directory. Create it if it does not exist
+	_, err := os.Stat(settingsDir)
+	if errors.Is(err, fs.ErrNotExist) {
+		os.Mkdir(settingsDir, 0644)
+	}
 
 	fileData, err := os.ReadFile(settingsFilePath)
 
