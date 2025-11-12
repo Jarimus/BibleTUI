@@ -6,7 +6,6 @@ import (
 
 	"github.com/Jarimus/BibleTUI/internal/api_query"
 	"github.com/Jarimus/BibleTUI/internal/styles"
-	"github.com/Jarimus/BibleTUI/internal/tts"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -121,12 +120,12 @@ func (m bibleScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, stopAudio, toPreviousChapter)
 		case tea.KeyRight.String():
 			cmds = append(cmds, stopAudio, toNextChapter)
-		case "p":
-			if apiCfg.CurrentlyReading.audioStop != nil {
-				cmds = append(cmds, stopAudio)
-			} else {
-				cmds = append(cmds, playAudio(m.bibleText, apiCfg.CurrentlyReading.LanguageID))
-			}
+			// case "p":
+			// 	if apiCfg.CurrentlyReading.audioStop != nil {
+			// 		cmds = append(cmds, stopAudio)
+			// 	} else {
+			// 		cmds = append(cmds, playAudio(m.bibleText, apiCfg.CurrentlyReading.LanguageID))
+			// 	}
 		}
 
 	}
@@ -153,7 +152,7 @@ func (m bibleScreenModel) headerView() string {
 
 // Style and render the footer
 func (m bibleScreenModel) footerView() string {
-	languageCode := tts.ISOtoTTScode(apiCfg.CurrentlyReading.LanguageID)
+	languageCode := "notImplemented"
 	var help string
 	var audioHelpText string
 	if languageCode == "" {
@@ -205,19 +204,19 @@ func formatBibleText(text string, width int) string {
 
 // Plays the input text in the input language, if supported.
 // Also listens for a stop signal in the audioStop channel.
-func playAudio(text, language string) tea.Cmd {
-	return func() tea.Msg {
-		// Create a channel to listen for when to stop playback.
-		audioStop := make(chan bool, 1)
-		apiCfg.CurrentlyReading.audioStop = audioStop
-		err := tts.SpeakText(text, language, audioStop)
-		if err != nil {
-			return err
-		}
-		return audioDone{}
-	}
+// func playAudio(text, language string) tea.Cmd {
+// 	return func() tea.Msg {
+// 		// Create a channel to listen for when to stop playback.
+// 		audioStop := make(chan bool, 1)
+// 		apiCfg.CurrentlyReading.audioStop = audioStop
+// 		err := tts.SpeakText(text, language, audioStop)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		return audioDone{}
+// 	}
 
-}
+// }
 
 // Signals for the audio to stop in the audioStop channel.
 // Also closes the channel and sets it to nil.
