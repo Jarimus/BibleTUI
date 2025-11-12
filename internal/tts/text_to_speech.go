@@ -17,7 +17,7 @@ func SpeakText(text, lan string, audioStop chan bool) error {
 		return err
 	}
 
-	// Convert the
+	// Convert the language code, initialize tts
 	lan = ISOtoTTScode(lan)
 	speech := htgotts.Speech{Folder: AudioFolderPath, Language: lan, Handler: &handlers.Native{}}
 

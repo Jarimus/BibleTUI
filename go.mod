@@ -5,10 +5,9 @@ go 1.24.2
 
 toolchain go1.24.4
 
-require github.com/charmbracelet/bubbletea v1.3.10
-
 require (
 	github.com/charmbracelet/bubbles v0.21.0
+	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/hegedustibor/htgo-tts v0.0.0-20240912200108-467b3e535435
 	github.com/mitchellh/go-wordwrap v1.0.1

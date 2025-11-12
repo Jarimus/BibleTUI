@@ -85,8 +85,8 @@ const maxLength = 200
 // Splits text into smaller parts for tts to handle.
 func splitText(text string) []string {
 	var parts []string
-	sentences := strings.Split(text, ". ") // Split by sentence
-	for _, sentence := range sentences {
+	sentences := strings.SplitSeq(text, ". ") // Split by sentence
+	for sentence := range sentences {
 		if len(sentence) > maxLength {
 			words := strings.Split(sentence, " ")
 			var part string
